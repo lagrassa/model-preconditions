@@ -1,0 +1,137 @@
+debug: False
+seed: 0
+tag: ${now:%Y-%m-%d-%H-%M-%S}
+upload_to_wandb: 0
+original_cwd: ""
+train: 0
+do_pr_curve: 0
+sample_complexity_test: 0
+feature_type: dists_and_actions_only
+dataset_save_loc: /home/lagrassa/git/plan-abstractions/data/dataset_data_pick_sim.npy #helpful for sim models
+#dataset_file_cache: /home/lagrassa/git/plan-abstractions/data/dataset_data_pick_sim.npy #helpful for sim models
+
+data_aug:
+  num_noise_aug : 1000
+  num_grid_aug : 0
+  state_noise_mag: 0.01 #0.003
+  action_noise_mag: 0.03 #0.05 worked well before
+
+test_size: 0.05
+
+shared_info:
+  use_sim_model: True
+  sem_cfg:
+    type: SEMAnalyticalDrawerAndRobot #SEMSimpleFreeSpace # SEMMLP
+    env: FrankaRodEnv
+    drawer_edge_dims : [0.25, 0.01, 0.07] #Make sure matches with URDF
+    sem_state_obj_names:
+      - franka:ee
+      - rod0
+      - rod1
+  c1: 3
+  c2: 1
+  env:
+    FrankaRodEnv
+  sem_state_obj_names:
+    - franka:ee
+    - rod0
+    - rod1
+  train_cfg:
+    lr: 0.001 #0.005 worked well
+    max_epochs: 2
+    N: 64
+    batch_size: 128
+    weight_decay: 1e-5 #5e-3 #0.005 worked well
+
+
+mde_stats_path: /home/lagrassa/git/plan-abstractions/data/mde_stats_final
+precision_save_dir : /home/lagrassa/git/plan-abstractions/data/pr_curves
+deviation_cfg:
+  env: FrankaRodEnv
+  type: MLPModel  #GPRModel #RFRModel #KNNRegressorModel #MLPModel #LinearRegressionModel #KNNRegressorModel
+  #run_path: lagrassa/mde/runs/1vsuifa9
+  run_path: lagrassa/mdes/runs/2suxryjs
+  #run_path: iam-lab/asm/runs/3dov61e6
+  cache_dir: /home/lagrassa/plan_abstractions/cache
+  acceptable_deviation: 0.05 #0.08
+  c1: 5
+  c2: 1
+  sem_state_obj_names:
+    - franka:ee
+    - rod0
+    - rod1
+defaults:
+  - envs: franka_env_slippery_no_drop.yaml
+
+wandb:
+  init:
+    entity: lagrassa
+    project: mdes
+    group: alex/validation
+  saver:
+    upload: True
+skills:
+  Pick:
+    low_level: False
+    env: FrankaRodEnv # PushRodEnv, FrankaRodEnv
+    data:
+      mock: False
+      #root: /home/jacky/plan_abstractions/skill_data/LQRWaypointsXYZYawFranka
+      #val_root: /home/jacky/plan_abstractions/skill_data/LQRWaypointsXYZYawFranka
+      root: /home/lagrassa/git/plan-abstractions/data/combined_data/
+      val_root: /home/lagrassa/git/plan-abstractions/data/combined_data/
+      val_tags:
+        - Pick_default__n_iter_0__seed_9
+        - Pick_default__n_iter_0__seed_6
+        - RodInDrawerPick_datacollect__n_iter_0__seed_6
+        - RodInDrawerPick_datacollect__n_iter_0__seed_0
+        - RodInDrawerPick_default__n_iter_0__seed_7
+        - Pick_datacollect__n_iter_0__seed_4
+        - Pick_datacollect__n_iter_0__seed_5
+      tags:
+        - Pick_default__n_iter_0__seed_3
+        - Pick_datacollect__n_iter_0__seed_1
+        - RodInDrawerPick_datacollect__n_iter_0__seed_5
+        - RodInDrawerPick_default__n_iter_0__seed_8
+        - Pick_datacollect__n_iter_0__seed_3
+        - Pick_default__n_iter_0__seed_4
+        - Pick_default__n_iter_0__seed_0 #fine
+        - RodInDrawerPick_datacollect__n_iter_0__seed_7
+        - Pick_default__n_iter_0__seed_1
+        - Pick_default__n_iter_0__seed_8
+        - Pick_default__n_iter_0__seed_2
+        - Pick_default__n_iter_0__seed_7 #fine
+        - Pick_default__n_iter_0__seed_10 #fine
+        - Pick_default__n_iter_0__seed_11 #fine
+        - Pick_default__n_iter_0__seed_12 #fine
+        - Pick_default__n_iter_0__seed_13
+        - Pick_datacollect__n_iter_0__seed_0
+        - Pick_datacollect__n_iter_0__seed_2
+        - Pick_datacollect__n_iter_0__seed_6
+        - RodInDrawerPick_default__n_iter_0__seed_0
+        - RodInDrawerPick_default__n_iter_0__seed_1
+        - RodInDrawerPick_default__n_iter_0__seed_2
+        - RodInDrawerPick_default__n_iter_0__seed_3
+        - RodInDrawerPick_default__n_iter_0__seed_4
+        - RodInDrawerPick_default__n_iter_0__seed_5
+        - RodInDrawerPick_default__n_iter_0__seed_6
+        - RodInDrawerPick_datacollect__n_iter_0__seed_2
+        - RodInDrawerPick_datacollect__n_iter_0__seed_3
+        - RodInDrawerPick_datacollect__n_iter_0__seed_4
+      sem_state_obj_names:
+        - franka:ee
+        - rod0
+        - rod1
+      normalization_type: 'z_normalization'    # 'none', 'z_normalization', 'min_max'? #TODO use same as dynamics model
+      z_normalization:
+        # mean_std per feature ()
+        # can only normalize values we require also maybe try min-max?
+        mean: [  0,  0,  0,  0,  0,  0,  0,  0,  0,0,0,0,  828.628,   3.886,   0.059]
+        std:  [  1,  1,  1,  1,  1,  1,  1,  1,  1,1,1,1,   22.012,   3.440,   0.004]
+      skill: Pick # the skill class name
+      state_info:
+        use_state_diff_in_end_state: True
+        # anchor_obj_name: pusher # uncomment to use relative states
+
+
+

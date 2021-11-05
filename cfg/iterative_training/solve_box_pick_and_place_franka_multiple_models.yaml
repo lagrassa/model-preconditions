@@ -1,0 +1,104 @@
+hydra:
+  run:
+    dir: ${data_root_dir}/${tag}/${now:%Y-%m-%d_%H-%M-%S}/
+
+defaults:
+  - tasks: box_rod_franka.yaml
+  - envs: franka_env_slippery_no_drop.yaml
+
+data_root_dir: /mnt/hdd/jacky/plan_abstractions/planner/push_rod
+
+tag: default
+seed: 8 #5 starts out in goal state now
+original_cwd : ''
+
+vis: False
+show_node_error: False
+max_n_nodes_to_eval: 10
+
+skills:
+  Pick:
+    use: True
+    sem_cfg:
+      type: SEMSimpleFreeSpace # SEMMLP
+      env: FrankaRodEnv
+      cache_dir: /home/lagrassa/git/plan-abstractions/data_store/cache
+      run_path: iam-lab/asm/runs/1ygxvfc0
+      checkpoint: checkpoints/epoch=000740-val_loss=0.1075.ckpt
+      predict:
+        num_samples: 1
+        truncate: 0.02
+    param_sampling_probabilities:
+      object_centric: 1.0
+      relation_centric: 0.0
+      random: 0.0
+      task_oriented: 0.0 #should be 0 for collect_skill_data
+    models:
+      SEMModel:
+        deviation_cfg:
+          use_deviation_model: False
+      SimModel:
+        deviation_cfg:
+          use_deviation_model: False
+  LiftAndDrop:
+    use: True
+    sem_cfg:
+      type: SEMAnalyticalRodsAndRobot # SEMMLP
+      env: FrankaRodEnv
+      cache_dir: /home/lagrassa/git/plan-abstractions/data_store/cache
+      run_path: iam-lab/asm/runs/1ygxvfc0
+      checkpoint: checkpoints/epoch=000740-val_loss=0.1075.ckpt
+      predict:
+        num_samples: 1
+        truncate: 0.02
+    deviation_cfg:
+      env: FrankaRodEnv
+      type: MLPModel
+      cache_dir: /home/lagrassa/git/plan-abstractions/data_store/cache
+      #run_path: iam-lab/asm/runs/3egmeh4z
+      run_path: iam-lab/asm/runs/1iukpqvh
+      acceptable_deviation: 0.04 #0.08
+      sem_state_obj_names:
+        - franka:ee
+        - rod0
+        - rod1
+    param_sampling_probabilities:
+      object_centric: 0.0
+      relation_centric: 0.0
+      random: 0.0
+      task_oriented: 1.0 #should be 0 for collect_skill_data
+    models:
+      SEMModel:
+        deviation_cfg:
+          use_deviation_model: False
+          env: FrankaRodEnv
+          type: MLPModel
+          cache_dir: /home/lagrassa/git/plan-abstractions/data_store/cache
+          #run_path: iam-lab/asm/runs/3egmeh4z
+          run_path: iam-lab/asm/runs/1iukpqvh
+          acceptable_deviation: 0.00004 #0.08
+          sem_state_obj_names:
+            - franka:ee
+            - rod0
+            - rod1
+      SimModel:
+        deviation_cfg:
+          use_deviation_model : False
+
+planner:
+  type: AStar # MCTS, AStar
+  timeout: 10000
+  max_search_depth: 3
+  MCTS:
+    T_plan_max: 1
+    T_exec_max: 1000
+    n_params_per_skill: 20
+    n_samples_per_sim: 1
+    use_gt_effects: True
+  AStar:
+    T_plan_max: 1
+    T_exec_max: 1000
+    eps: 20
+    n_params_per_skill: 10
+    use_gt_effects: False
+    use_multiple_models : True

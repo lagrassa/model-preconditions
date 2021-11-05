@@ -1,0 +1,110 @@
+hydra:
+  run:
+    dir: ${data_root_dir}/${tag}/${now:%Y-%m-%d_%H-%M-%S}/
+
+defaults:
+  - tasks: box_rod_franka.yaml
+  - envs: franka_env_slippery_no_drop.yaml
+
+data_root_dir: /mnt/hdd/jacky/plan_abstractions/planner/push_rod
+
+
+# these are here in case collect_skill_data_via_planner.py is ran outside of run_iterative_training.sh
+hydra_root_dir: /mnt/hdd/jacky/plan_abstractions/iterative_training/hydra_dirs
+path_to_skill_data_records_csv: /mnt/hdd/jacky/plan_abstractions/iterative_training/skill_data_records.csv
+path_to_model_records_csv: /mnt/hdd/jacky/plan_abstractions/iterative_training/model_records.csv
+planner_results_root_dir: /tmp/plan_stat_results
+
+tag: default
+seed: 0
+original_cwd : ''
+
+save_every: 1
+
+# args to be overwritten by bash
+root_tag: default
+root_n_iter: 0
+vis: 0
+# max number of transitions to generate and save
+n_transitions: 500
+
+# max depth for search
+max_search_depth: 3
+
+# params for traversing a finished tree
+n_samples_per_path: 2
+max_path_length: 3
+max_leaf_nodes: 5
+
+show_node_error: False
+max_n_nodes_to_eval: 10
+T_exec_max_real: 35
+
+skills:
+  Pick:
+    use: True
+    sem_cfg:
+      type: SEMSimpleFreeSpace # SEMMLP
+      env: FrankaRodEnv
+      cache_dir: /mnt/hdd/lagrassa/plan_abstractions/cache
+      run_path: iam-lab/asm/runs/1zfmaysn
+      checkpoint: checkpoints/epoch=000621-val_loss=0.0831.ckpt
+      predict:
+        num_samples: 1
+        truncate: 0.02
+
+    deviation_cfg:
+      env: FrankaRodEnv
+      type: KNNRegressorModel
+      cache_dir: /mnt/hdd/lagrassa/plan_abstractions/cache
+      #run_path: iam-lab/asm/runs/sem/runs/2vdyi16r
+      #run_path: iam-lab/asm/runs/sem/runs/emya8spz
+      #run_path: iam-lab/asm/runs/sem/runs/21gknt16
+      run_path: iam-lab/asm/runs/3egmeh4z
+      #run_path: iam-lab/asm/runs/sem/runs/22w7dbwg
+      acceptable_deviation: 0.05 #0.08
+      sem_state_obj_names:
+        - franka:ee
+        - rod0
+        - rod1
+
+    param_sampling_probabilities:
+      object_centric: 1.0
+      relation_centric: 0.0
+      random: 0.0
+      task_oriented: 0.0 #should be 0 for collect_skill_data
+  LiftAndDrop:
+    use: True
+    sem_cfg:
+      type: SEMAnalyticalRodsAndRobot # SEMMLP
+      env: FrankaRodEnv
+      cache_dir: /mnt/hdd/lagrassa/plan_abstractions/cache
+      run_path: iam-lab/asm/runs/1ygxvfc0
+      checkpoint: checkpoints/epoch=000740-val_loss=0.1075.ckpt
+      predict:
+        num_samples: 1
+        truncate: 0.02
+    param_sampling_probabilities:
+      object_centric: 0.0
+      relation_centric: 0.0
+      random: 0.0
+      task_oriented: 1.0 #should be 0 for collect_skill_data
+
+
+planner:
+  type: AStar # MCTS, AStar
+  timeout: 100000
+  max_search_depth: 3
+  MCTS:
+    T_plan_max: 1
+    T_exec_max: 1000
+    n_params_per_skill: 10
+    n_samples_per_sim: 1
+    use_gt_effects: True
+  AStar:
+    T_plan_max: 1
+    T_exec_max: 1000
+    eps: 5
+    n_params_per_skill: 5
+    use_gt_effects: False
+    use_multiple_models: False

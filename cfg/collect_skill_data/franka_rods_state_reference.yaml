@@ -1,0 +1,50 @@
+#FOR REFERENCE ONLY. Should not be loaded
+state:
+  - frame:franka:joint/position:
+    - values: [0., -0.7853981633974483, 0., -2.356194490192345, 0., 1.5707963267948966, 0.7853981633974483]
+      value_names: ['q0', 'q1', 'q2', 'q3', 'q4', 'q5', 'q6']
+  - frame:franka:joint/velocity:
+    - values: [0., 0., 0., 0., 0., 0., 0.]
+      value_names: ['q0', 'q1', 'q2', 'q3', 'q4', 'q5', 'q6']
+  - frame:franka:gripper/width:
+    - values: [0] # max is 0.04
+      value_names: ['w']
+  - frame:franka:ee:pose/position:
+    - values: [0.30689, 0., 0.49688]
+      value_names: ['x', 'y', 'z']
+  - frame:franka:ee:pose/quaternion:
+    - values: [0., 1., 0., 0.]
+      value_names: ['w', 'x', 'y', 'z']
+  - frame:franka:ee:pose/linear_velocity:
+    - values: [0., 0., 0.]
+      value_names: ['x', 'y', 'z']
+  - frame:franka:ee:pose/angular_velocity:
+    - values: [0., 0., 0.]
+      value_names: ['x', 'y', 'z']
+  - frame:rod0:pose/position:
+    - values: [0.4, 0., 0.01]
+      value_names: ['x', 'y', 'z']
+  - frame:rod0:pose/quaternion:
+    - values: [1., 0., 0., 0.]
+      value_names: ['w', 'x', 'y', 'z']
+  - frame:rod1:pose/position:
+    - values: [0.6, 0., 0.01]
+      value_names: ['x', 'y', 'z']
+  - frame:rod1:pose/quaternion:
+    - values: [1., 0., 0., 0.]
+      value_names: ['w', 'x', 'y', 'z']
+  - constants/gravity_accel_const:
+    - values: 9.80665
+  - constants/pi:
+    - values: 3.14159
+  - constants/rod_dims: #dummy variable, keep consistent with IG config
+    - values: [0.01, 0.07]
+      value_names: ['w', 'h']
+  - constants/obstacle_width:
+    - values: 0.07
+  - constants/gripper_mass:
+    - values: 1 #placeholder for reference, fill in based on env
+  - constants/pusher_mass: #placeholder for reference, fill in based on env
+    - values: 1
+  - constants/rod_mass: #placeholder for reference, fill in based on env
+    - values: 1

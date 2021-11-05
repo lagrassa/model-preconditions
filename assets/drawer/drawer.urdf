@@ -1,0 +1,112 @@
+<?xml version="1.0"?>
+<robot name="bin">
+  <material name="omni/Brown">
+    <color rgba="0.3 0.1 0.1 1"/>
+  </material>
+  <link name="top_fixed">
+    <visual>
+      <origin xyz="0 0 0.12" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.25 0.38 0.01"/>
+      </geometry>
+    </visual>	
+    <collision>
+      <origin xyz="0 0 0.12" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.25 0.38 0.01"/>
+      </geometry>
+    </collision>
+  </link>
+  <link name="bottom_pullout">
+    <visual>
+      <origin xyz="0 0 0.01" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.25 0.38 0.01"/>
+      </geometry>
+      <material name="omni/Brown"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.01" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.25 0.38 0.01"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="front">
+    <visual>
+      <origin xyz="0 0 0.01" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.25 0.01 0.08"/>
+      </geometry>
+      <material name="omni/Brown"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.01" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.25 0.01 0.08"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="close_side">
+    <visual>
+      <origin xyz="0.125 0 0.01" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.01 0.38 0.07"/>
+      </geometry>
+      <material name="omni/Brown"/>
+    </visual>
+    <collision>
+      <origin xyz="0.125 0 0.01" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.01 0.38 0.07"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="far_side">
+    <visual>
+      <origin xyz="-0.125 0 0.01" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.01 0.38 0.07"/>
+      </geometry>
+      <material name="omni/Brown"/>
+    </visual>
+    <collision>
+      <origin xyz="-0.125 0 0.01" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.01 0.38 0.07"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="base_to_front" type="fixed">
+    <parent link="bottom_pullout"/>
+    <child link="front"/>
+    <origin xyz="0 -0.19 0.035"/>
+  </joint>
+
+  <joint name="base_to_close_side" type="fixed">
+    <parent link="bottom_pullout"/>
+    <child link="close_side"/>
+    <origin xyz="0 0 0.03"/>
+  </joint>
+  <joint name="base_to_far_side" type="fixed">
+    <parent link="bottom_pullout"/>
+    <child link="far_side"/>
+    <origin xyz="0 0 0.03"/>
+  </joint>
+
+  <joint name="sliding" type="prismatic">
+    <parent link="top_fixed"/>
+    <child link="bottom_pullout"/>
+    <origin xyz="0 0 0.00"/>
+    <axis xyz="0 -1 0"/>
+    <dynamics damping="40.0" friction="0.8"/>
+    <limit effort="0.1" lower="0" upper="0.21" velocity="10.0"/>
+  </joint>
+
+
+
+</robot>

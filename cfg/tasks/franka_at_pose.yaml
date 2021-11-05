@@ -1,0 +1,13 @@
+task:
+  env: FrankaRodEnv
+  type: MoveGripperToPose
+  goal:
+    goal_xyz_yaw: [0.534, 0.08, 0.05, 32] #yaw in deg, upside down because ee is upside down
+    randomize: True
+    goal_pose_ranges:
+      low:  [0.6, -0.2, 0.05, 0]
+      high: [0.7, 0.2, 0.09, 90]
+    position_tol: 0.01
+    yaw_tol: 0.09 #~5 degrees
+
+

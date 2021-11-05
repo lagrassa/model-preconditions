@@ -1,0 +1,15 @@
+debug: False
+seed: 0
+tag: ${now:%Y-%m-%d-%H-%M-%S}
+
+data:
+  test_size: 0.2
+  mock: False
+  root: /home/mohit/experiment_results/plan_abstractions/skill_data/push_rod/more_goal_params/FreeSpaceLQRMove
+  tags:
+    - s99
+
+  sem_state_obj_names:
+    - pusher
+    - rod0
+    - rod1

@@ -1,0 +1,88 @@
+debug: False
+seed: 0
+tag: ${now:%Y-%m-%d-%H-%M-%S}
+upload_to_wandb: True
+original_cwd: ""
+train: False
+
+graphs: True
+model_class: ECNModel
+
+deviation_cfg:
+  env: FrankaRodEnv
+  type: ECNModel
+  cache_dir: /home/lagrassa/git/plan-abstractions/data_store/cache
+  run_path: iam-lab/mdes/runs/1anm3sx0
+  acceptable_deviation: 0.04 #0.08
+  sem_state_obj_names:
+    - franka:ee
+    - rod0
+    - rod1
+
+
+defaults:
+  - envs: franka_env.yaml
+
+wandb:
+  init:
+    entity: iam-lab
+    project: mdes
+    group: alex/validation
+  saver:
+    upload: True
+
+
+skill:
+  type: FreeSpaceMoveToGroundFranka
+  use_sim_model: False
+  low_level: True
+  env: FrankaRodEnv # PushRodEnv, FrankaRodEnv
+  c1: 3
+  c2: 1
+  train:
+    learning_rate: 0.001
+    max_num_epochs: 100
+    batch_size: 256
+    loss_scale: 1
+
+  low_level_models:
+    FreeSpaceMoveModel:
+      debug_name : FreeSpaceMove
+      deviation_cfg:
+        use_deviation_model: False
+  data:
+    test_size: 0.0
+    mock: False
+    #root: /mnt/hdd/jacky/plan_abstractions/skill_data/LQRWaypointsXYZYawFranka
+    #val_root: /mnt/hdd/jacky/plan_abstractions/skill_data/LQRWaypointsXYZYawFranka
+    root: /mnt/hdd/jacky/plan_abstractions/skill_data/straight_line/FreeSpaceMoveToGroundFranka
+    val_root: /mnt/hdd/jacky/plan_abstractions/skill_data/straight_line/FreeSpaceMoveToGroundFranka
+    val_tags:
+      - obj1_higher_gains_seed_1
+    tags:
+      - obj1_higher_gains_seed_1
+      #- default__n_iter_1__seed_0_2
+      #- default__n_iter_1__seed_0_3
+      #- default__n_iter_1__seed_0_4
+      #- default__n_iter_1__seed_0_5
+      #- default__n_iter_1__seed_0_6
+    sem_state_obj_names:
+      - franka:ee
+      - rod0
+      - rod1
+    normalization_type: 'z_normalization'    # 'none', 'z_normalization', 'min_max'? #TODO use same as dynamics model
+    z_normalization:
+      # mean_std per feature ()
+      # can only normalize values we require also maybe try min-max?
+      mean: [  0,  0,  0,  0,  0,  0,  0,  0,  0,0,0,0,  828.628,   3.886,   0.059]
+      std:  [  1,  1,  1,  1,  1,  1,  1,  1,  1,1,1,1,   22.012,   3.440,   0.004]
+    skill: FreeSpaceMoveToGroundFranka # the skill class name
+    state_info:
+      use_state_diff_in_end_state: True
+      # anchor_obj_name: pusher # uncomment to use relative states
+
+    predict:
+      num_samples: 1
+      truncate: 0.1
+
+

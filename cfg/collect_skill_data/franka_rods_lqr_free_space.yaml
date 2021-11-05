@@ -1,0 +1,122 @@
+hydra:
+  run:
+    dir: ${data_root_dir}/${skill.type}/${tag}/${now:%Y-%m-%d_%H-%M-%S}/
+
+# data_root_dir: /mnt/hdd/jacky/plan_abstractions/skill_data/push_rod
+# data_root_dir: /home/saumyas/projects/plan_learn/data/skill_data/franka_rod/es_0_no_random_dynamics_friction_init_states_50/
+data_root_dir: /home/saumyas/Documents/experiment_data/plan_abstractions/skill_data/franka_rod/
+
+tag: default
+save_every: 10
+seed: 0
+original_cwd: '' # To be overwritten
+
+env: FrankaRodEnv
+skill:
+  type: FreeSpaceMoveLQRFranka #
+  T_plan_max: 1
+  T_exec_max: 1000
+  param_sampling_probabilities:
+    object_centric: 1
+    relation_centric: 0
+    random: 0.0
+    task_oriented: 0 #should be 0 for collect_skill_data
+  replan:
+    use: False
+    interval: 10
+
+n_init_states: 10
+n_parameters: 48
+n_envs_per_state_param_tuple: 4
+# B/c there are many params per init state, a low n_max_exec + shuffle means we can get a higher init_state to param ratio
+shuffle: True
+n_max_execs: 1000 # use -1 to disable this cap.
+
+scene:
+  cts: True
+  n_envs: 64
+  es: 0
+  gui: 0
+  cam:
+    cam_pos: [1.2, 0, 0.8]
+    look_at: [0.3, 0, 0.3]
+  gym:
+    dt: 0.01
+    substeps: 2
+    up_axis: z
+    type: flex
+    use_gpu_pipeline: False
+    flex:
+      solver_type: 5
+      num_outer_iterations: 4
+      num_inner_iterations: 30
+      relaxation: 1
+      warm_start: 0.8
+      shape_collision_margin: 1e-3
+      contact_regularization: 1e-7
+      deterministic_mode: True
+    device:
+      compute: 0
+      graphics: 0
+    plane:
+      dynamic_friction: 0
+      static_friction: 0
+
+franka:
+  attractor_props:
+    stiffness: 1e3
+    damping: 2.5e2
+  asset_options:
+    fix_base_link: True
+    flip_visual_attachments: True
+    armature: 0.01
+    max_linear_velocity: 100.0
+    max_angular_velocity: 40.0
+    disable_gravity: True
+  shape_props:
+    thickness: 1e-3
+  dof_props:
+    stiffness: [2e3, 2e3, 2e3, 2e3, 2e3, 2e3, 2e3, 1e2, 1e2]
+    damping: [2e2, 2e2, 2e2, 2e2, 2e2, 2e2, 2e2, 5, 5]
+    effort: [87, 87, 87, 87, 12, 12, 12, 100, 100]
+
+rod:
+  dims:
+    sx: 0.01
+    sy: 0.15
+    sz: 0.01
+  shape_props:
+    friction: 0.1
+    rolling_friction: 0
+    torsion_friction: 2e-3
+    thickness: 2e-3
+  rb_props:
+    flags: none # can be none, no_sim, no_gravity
+    color: [0.9, 0.1, 0.1]
+  asset_options:
+    density: 1000
+
+env_props:
+  num_rods: 2
+  initial_states:
+    randomize : True
+    rod_poses:
+      - [0.4, 0, 0]
+      - [0.6, 0, 30]
+    pose_ranges:
+      low: [0.4, -0.1, 0]
+      high: [0.6, 0.1, 270]
+  range_spacing: 3
+  dynamics:
+    randomize: True
+    rod:
+      shape_props:
+        friction: [0.25, 0.26]
+        torsion_friction: [2e-3, 2e-3]
+      rb_props:
+        mass: [0.010, 0.011]
+  cost_weights:
+    energy: 100
+    action: 0.1
+  franka_init_states_path: data/franka_init_states.npz
+  collision_eps: 5e-3

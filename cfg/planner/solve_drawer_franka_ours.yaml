@@ -1,0 +1,265 @@
+hydra:
+  run:
+    dir: ${data_root_dir}/${tag}/${now:%Y-%m-%d_%H-%M-%S}/
+
+defaults:
+  - tasks: drawer_task.yaml
+  - envs: franka_env_drawer.yaml
+
+#data_root_dir: /home/lagrassa/plan_abstractions/corl/planner/rod_in_drawer_ours_final
+data_root_dir: /tmp
+
+
+tag: default
+seed: 0
+original_cwd : ''
+root_tag: datacollect
+root_n_iter: 0
+vis: False
+show_node_error: False
+max_n_nodes_to_eval: 10
+n_transitions: 50
+
+save_every: 1
+
+n_samples_per_path: 1
+max_path_length: 5
+max_leaf_nodes: 3
+max_search_depth: 3
+
+# these are here in case collect_skill_data_via_planner.py is ran outside of run_iterative_training.sh
+hydra_root_dir: /home/lagrassa/plan_abstractions/iterative_training/hydra_dirs
+path_to_skill_data_records_csv: /home/lagrassa/plan_abstractions/iterative_training/skill_data_records.csv
+path_to_model_records_csv: /home/lagrassa/plan_abstractions/iterative_training/model_records.csv
+planner_results_root_dir: /tmp/plan_stat_results
+
+
+skills:
+  OpenDrawer:
+    use: True
+    cache_dir: /tmp
+    param_sampling_probabilities:
+      object_centric: 1.0
+      relation_centric: 0.0
+      random: 0.0
+      task_oriented: 0.0 #should be 0 for collect_skill_data
+    high_level_models:
+      SimModel:
+        type: SimModel
+        debug_name: OpenSim
+        deviation_cfg:
+          use_deviation_model: True
+          env: FrankaDrawerEnv
+          type: MLPModel
+          run_path: lagrassa/mdes-public/runs/3gv5u45r #2vr76gj0 #1yyub00p #oxzqosmm #2fsta3ma #1frshlay #25b5uh55
+          acceptable_deviation: 0.06
+          sem_state_obj_names:
+            - franka:ee
+            - rod0
+            - rod1
+            - drawer
+      SEMModel1:
+        type: SEMModel
+        debug_name: OpenDrawerAnalytical
+        sem_cfg:
+          type: SEMAnalyticalDrawerAndRobot # SEMMLP
+          env: FrankaDrawerEnv
+          debug_name: OpenAnalytical
+          drawer_edge_dims: [0.25, 0.01, 0.07] #Make sure matches with URDF
+          dim_state: 16
+          sem_state_obj_names:
+            - franka:ee
+            - rod0
+            - rod1
+            - drawer
+        deviation_cfg:
+          use_deviation_model: True
+          env: FrankaDrawerEnv
+          type: MLPModel
+          run_path: lagrassa/mdes-public/runs/zg3rgdlk #2vr76gj0 #1yyub00p #oxzqosmm #2fsta3ma #1frshlay #25b5uh55
+          acceptable_deviation: 0.06
+          sem_state_obj_names:
+            - franka:ee
+            - rod0
+            - rod1
+            - drawer
+      SEMModel2:
+        type: SEMModel
+        debug_name : PickAnalyticalForOpenDrawer
+        sem_cfg:
+          sem_state_obj_names:
+            - franka:ee
+            - rod0
+            - rod1
+            - drawer
+          type: SEMAnalyticalRodsAndRobot # SEMMLP
+          env: FrankaDrawerEnv
+          dim_state: 16
+        deviation_cfg:
+          use_deviation_model: True
+          env: FrankaDrawerEnv
+          type: MLPModel
+          run_path: lagrassa/mdes-public/runs/27j05iqf #2fsta3ma #1frshlay #25b5uh55
+          acceptable_deviation: 0.06 #0.08
+          sem_state_obj_names:
+            - franka:ee
+            - rod0
+            - rod1
+  Pick:
+    use: True
+    cache_dir: /tmp
+    param_sampling_probabilities:
+      object_centric: 0.0
+      relation_centric: 0.0
+      random: 0.0
+      task_oriented: 1.0 #should be 0 for collect_skill_data
+    high_level_models:
+      SimModel:
+        type: SimModel
+        debug_name: PickSim
+        deviation_cfg:
+          use_deviation_model: 1
+          env: FrankaRodEnv
+          type: MLPModel
+          run_path: lagrassa/mdes-public/runs/2suxryjs
+          acceptable_deviation: 0.03 #0.08
+          sem_state_obj_names:
+            - franka:ee
+            - rod0
+            - rod1
+      SEMModel1:
+        type: SEMModel
+        debug_name: PickDrawerAnalytical
+        sem_cfg:
+          type: SEMAnalyticalDrawerAndRobot # SEMMLP
+          env: FrankaDrawerEnv
+          debug_name: OpenAnalytical
+          drawer_edge_dims: [0.25, 0.01, 0.07] #Make sure matches with URDF
+          dim_state: 16
+          sem_state_obj_names:
+            - franka:ee
+            - rod0
+            - rod1
+            - drawer
+        deviation_cfg:
+          use_deviation_model: True
+          env: FrankaDrawerEnv
+          type: MLPModel
+          run_path: lagrassa/mdes-public/runs/3dov61e6 #2vr76gj0 #1yyub00p #oxzqosmm #2fsta3ma #1frshlay #25b5uh55
+          acceptable_deviation: 0.03 #0.08
+          sem_state_obj_names:
+            - franka:ee
+            - rod0
+            - rod1
+            - drawer
+      SEMModel2:
+        type: SEMModel
+        debug_name : PickAnalytical
+        sem_cfg:
+          sem_state_obj_names:
+            - franka:ee
+            - rod0
+            - rod1
+            - drawer
+          type: SEMAnalyticalRodsAndRobot # SEMMLP
+          env: FrankaDrawerEnv
+          dim_state: 16
+        deviation_cfg:
+          use_deviation_model: 1 #True
+          env: FrankaDrawerEnv
+          type: MLPModel
+          run_path: lagrassa/mdes-public/runs/1vsuifa9 #1h1tdkxf  #iam-lab/asm/runs/26cwnrfg #2fsta3ma #1frshlay #25b5uh55
+          acceptable_deviation: 0.03 #0.08
+          sem_state_obj_names:
+            - franka:ee
+            - rod0
+            - rod1
+  LiftAndDrop:
+    use: True
+    cache_dir: /tmp
+    param_sampling_probabilities:
+      object_centric: 0.0
+      relation_centric: 0.0
+      random: 0.0
+      task_oriented: 1.0 #should be 0 for collect_skill_data
+    high_level_models:
+      SimModel:
+        type: SimModel
+        debug_name: LiftAndDropSim
+        deviation_cfg:
+          use_deviation_model: 1
+          env: FrankaRodEnv
+          type: MLPModel
+          run_path: lagrassa/mdes-public/runs/2tbsko67 #28dc8u2w   #186nwwoc #33ehdkd9 #19471rud  #3re6za4d #2fsta3ma #1frshlay #25b5uh55
+          acceptable_deviation: 0.08 #0.08
+          sem_state_obj_names:
+            - franka:ee
+            - rod0
+            - rod1
+      SEMModel1:
+        type: SEMModel
+        debug_name: LiftAndDropDrawerOpen
+        sem_cfg:
+          type: SEMAnalyticalDrawerAndRobot # SEMMLP
+          env: FrankaDrawerEnv
+          debug_name: OpenAnalytical
+          drawer_edge_dims: [0.25, 0.01, 0.07] #Make sure matches with URDF
+          dim_state: 16
+          sem_state_obj_names:
+            - franka:ee
+            - rod0
+            - rod1
+            - drawer
+        deviation_cfg:
+          use_deviation_model: 1
+          env: FrankaDrawerEnv
+          type: MLPModel
+          run_path: lagrassa/mdes-public/runs/3dov61e6
+          acceptable_deviation: 0.08 #0.08
+          sem_state_obj_names:
+            - franka:ee
+            - rod0
+            - rod1
+            - drawer
+      SEMModel2:
+        type: SEMModel
+        debug_name : LiftAndDropSEM
+        sem_cfg:
+          sem_state_obj_names:
+            - franka:ee
+            - rod0
+            - rod1
+            - drawer
+          type: SEMAnalyticalRodsAndRobot # SEMMLP
+          env: FrankaDrawerEnv
+          dim_state: 16
+        deviation_cfg:
+          use_deviation_model: 1
+          env: FrankaDrawerEnv
+          type: MLPModel
+          run_path: lagrassa/mdes-public/runs/3u8zgsxf #1t9qv9ix
+          acceptable_deviation: 0.08 #0.08
+          sem_state_obj_names:
+            - franka:ee
+            - rod0
+            - rod1
+planner:
+  type: MRAStar # MCTS, AStar
+  timeout: 300
+  max_search_depth: 5 #does not do anything
+  MCTS:
+    T_plan_max: 1
+    T_exec_max: 1000
+    n_params_per_skill: 20
+    n_samples_per_sim: 1
+    use_gt_effects: True
+  MRAStar:
+    #ablation_type: anchor_only #anchor_only, comment out for none
+    T_plan_max: 1
+    T_exec_max: 800
+    eps: 10
+    num_models: 3
+    wm: [10,1.1, 1]
+    n_params_per_skill: 5
+    use_gt_effects: False
+    use_multiple_models : True

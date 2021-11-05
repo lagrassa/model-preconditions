@@ -1,0 +1,38 @@
+task:
+  env: FrankaRodEnv
+  type: PushRodsInBoxFranka
+  yaw_same_tol: 0.05
+  goal:
+    dims:
+      sx: 0.12
+      sy: 0.08
+      sz: 0.01
+    target_rods: [0, 1] #1 if rod needs to be in box, 0 O.W.
+    position_tol: 0.005
+    pose: [0.51, 0.15] #x,y
+    randomize: True
+    goal_pose_ranges:
+      # low:  [0.46, 0.16, 0]
+      # high: [0.50, 0.18, 0.01]
+      low:  [0.43, 0.2, 0]
+      high: [0.43, 0.25, 0.01]
+
+
+test_task:
+  env: FrankaRodEnv
+  type: PushRodsInBoxFranka
+  yaw_same_tol: 0.05
+  goal:
+    dims:
+      sx: 0.12
+      sy: 0.08
+      sz: 0.01
+    target_rods: [0, 1] #1 if rod needs to be in box, 0 O.W.
+    position_tol: 0.005
+    pose: [0.51, 0.15] #x,y
+    randomize: True
+    goal_pose_ranges:
+      # low:  [0.46, 0.16, 0]
+      # high: [0.50, 0.18, 0.01]
+      low:  [0.43, 0.11, 0]
+      high: [0.43, 0.13, 0.01]

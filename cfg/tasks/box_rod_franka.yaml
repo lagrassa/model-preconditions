@@ -1,0 +1,20 @@
+task:
+  env: FrankaRodEnv
+  #real_env: RealFrankaRodEnv
+  type: PickRodsInBoxFranka
+  yaw_same_tol: 0.05
+  goal:
+    dims:
+      width: 0.172
+      length: 0.21
+      depth: 0.116
+      thickness: 0.014
+    target_rods: [1, 0] #1 if rod needs to be in box, 0 O.W.
+    position_tol: 0.005
+    pose: [0.44, 0.15] #x,y
+    randomize: True
+    goal_pose_ranges:
+      low:  [0.43, -0.127] #no yaw
+      high: [0.43, -0.127]
+
+

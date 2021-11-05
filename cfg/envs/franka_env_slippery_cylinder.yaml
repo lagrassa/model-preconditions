@@ -1,0 +1,128 @@
+
+env: FrankaRodEnv
+#real_env: RealFrankaRodEnv
+
+n_init_states: 2
+n_parameters: 48
+n_envs_per_state_param_tuple: 4
+# B/c there are many params per init state, a low n_max_exec + shuffle means we can get a higher init_state to param ratio
+shuffle: True
+n_max_execs: 4000 # use -1 to disable this cap.
+T_exec_max_real: 32
+#a###############################
+original_cwd: ''
+
+
+
+
+scene:
+  cts: False
+  n_envs: 10
+  es: 0
+  gui: 0
+  cam:
+    cam_pos: [1.2, 0, 0.8]
+    look_at: [0.3, 0, 0.3]
+  gym:
+    dt: 0.01
+    substeps: 4 #2
+    up_axis: z
+    type: flex
+    use_gpu_pipeline: False
+    flex:
+      solver_type: 5
+      num_outer_iterations: 6
+      num_inner_iterations: 30
+      relaxation: 1
+      warm_start: 0.8
+      shape_collision_margin: 1.5e-3
+      contact_regularization: 1e-7
+      deterministic_mode: True
+    physx:
+      solver_type: 1
+      num_position_iterations: 8
+      num_velocity_iterations: 1
+      rest_offset: 0.0
+      contact_offset: 0.001
+      friction_offset_threshold: 0.001
+      friction_correlation_distance: 0.0005
+      use_gpu: True
+
+    device:
+      compute: 0
+      graphics: 0
+    plane:
+      dynamic_friction: 1.5
+      static_friction: 1.5
+      restitution: 0.0
+
+franka:
+  attractor_props:
+    stiffness: 30 #50 #1000 #1e5
+    damping: 20 #40 #100 #1e3
+  asset_options:
+    fix_base_link: True
+    flip_visual_attachments: True
+    armature: 0.01
+    max_linear_velocity: 30.0
+    max_angular_velocity: 40.0
+    disable_gravity: True
+  shape_props:
+    thickness: 1e-3
+    torsion_friction: 0
+  dof_props:
+    stiffness: [2e3, 2e3, 2e3, 2e3, 2e3, 2e3, 2e3, 450, 450]
+    damping: [2e2, 2e2, 2e2, 2e2, 2e2, 2e2, 2e2, 5, 5]
+    effort: [87, 87, 87, 87, 12, 12, 12, 70, 70]
+    #stiffness: [4e2, 4e2, 4e2, 4e2, 4e2, 4e2, 4e2, 1e4, 1e4]
+    #damping: [40, 40, 40, 40, 40, 40, 40, 40, 40]
+    #effort: [400, 400, 400, 400, 1e3, 1e3, 1e3, 1.9, 1.9]
+    #effort: [2000, 2000, 2000, 2000, 1e3, 1e3, 1e3, 200, 200]
+
+rod:
+  capsule: True
+  dims:
+    width: 0.088
+    radius: 0.012
+  shape_props:
+    friction: 0.4
+    rolling_friction: 0.001 #1e-2
+    torsion_friction: 0.001 #1e-1
+    thickness: 1e-3
+    restitution: 0.0
+  rb_props:
+    flags: none # can be none, no_sim, no_gravity
+    color: [0.9, 0.1, 0.1]
+  asset_options:
+    density: 1000
+
+box:
+
+
+env_props:
+  num_rods: 2
+  initial_states:
+    randomize : True
+    rod_poses:
+      - [0.4, -0.2, 0]
+      - [0.64, 0.2, 30]
+    pose_ranges:
+      #low: [0.40, 0.05, 0]
+      #high: [0.54, 0.15, 270]
+      low: [0.35, 0.10, 0]
+      high: [0.54, 0.25, 270]
+  range_spacing: 3
+  dynamics:
+    randomize: True
+    rod:
+      shape_props:
+        friction: [0.25, 0.26]
+        torsion_friction: [1e-10, 1e-10]
+      rb_props:
+        mass: [0.04, 0.041]
+  cost_weights:
+    energy: 100
+    action: 0.1
+  franka_init_states_path: data/franka_init_states.npz
+  collision_eps: 5e-3
+

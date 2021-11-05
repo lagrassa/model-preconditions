@@ -1,0 +1,23 @@
+data:
+  train_data_path: "data/mock_training_data"
+  scaler_path: "data/mock_training_data"
+  validation_data_path: "data/mock_validation_data"
+  num_training: 10000
+  num_validation: 800
+  train_num_rod_possibilities:
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+  validation_num_rod_possibilities:
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+train:
+  learning_rate : 0.001
+  max_num_epochs : 3000
+  batch_size: 256
+  loss_scale : 1

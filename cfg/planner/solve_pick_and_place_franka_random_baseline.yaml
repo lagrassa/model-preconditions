@@ -1,0 +1,107 @@
+hydra:
+  run:
+    dir: ${data_root_dir}/${tag}/${now:%Y-%m-%d_%H-%M-%S}/
+
+defaults:
+  - tasks: box_rod_franka.yaml
+  - envs: franka_env_slippery_no_drop.yaml
+
+data_root_dir: /tmp
+
+
+tag: default
+seed: 9 #5 starts out in goal state now
+original_cwd : ''
+
+root_tag: default
+root_n_iter: 0
+vis: False
+show_node_error: False
+max_n_nodes_to_eval: 10
+n_transitions: 10
+
+save_every: 1
+
+n_samples_per_path: 1
+max_path_length: 3
+max_leaf_nodes: 3
+max_search_depth: 3
+
+# these are here in case collect_skill_data_via_planner.py is ran outside of run_iterative_training.sh
+hydra_root_dir: /home/lagrassa/plan_abstractions/iterative_training/hydra_dirs
+path_to_skill_data_records_csv: /home/lagrassa/plan_abstractions/iterative_training/skill_data_records.csv
+path_to_model_records_csv: /home/lagrassa/plan_abstractions/iterative_training/model_records.csv
+planner_results_root_dir: /tmp/plan_stat_results
+
+
+skills:
+  Pick:
+    use: True
+    cache_dir: /tmp
+    param_sampling_probabilities:
+      object_centric: 0.0
+      relation_centric: 0.0
+      random: 0.0
+      task_oriented: 1.0 #should be 0 for collect_skill_data
+    high_level_models:
+      SimModel:
+        type: SimModel
+        deviation_cfg:
+          use_deviation_model: False
+      SEMModel:
+        type: SEMModel
+        debug_name : PickAnalytical
+        sem_cfg:
+          sem_state_obj_names:
+            - franka:ee
+            - rod0
+            - rod1
+          type: SEMSimpleFreeSpace # SEMMLP
+          env: FrankaRodEnv
+        deviation_cfg:
+          use_deviation_model: 0 #True
+  LiftAndDrop:
+    use: True
+    cache_dir: /tmp
+    param_sampling_probabilities:
+      object_centric: 0.0
+      relation_centric: 0.0
+      random: 0.0
+      task_oriented: 1.0 #should be 0 for collect_skill_data
+    high_level_models:
+      SimModel:
+        type: SimModel
+        deviation_cfg:
+          use_deviation_model: False
+      SEMModel:
+        debug_name : LiftAndDropSEM
+        type: SEMModel
+        sem_cfg:
+          sem_state_obj_names:
+            - franka:ee
+            - rod0
+            - rod1
+          type: SEMAnalyticalRodsAndRobot # SEMMLP
+          env: FrankaRodEnv
+        deviation_cfg:
+          use_deviation_model: 0
+planner:
+  type: MRAStar # MCTS, AStar
+  timeout: 300
+  max_search_depth: 3
+  MCTS:
+    T_plan_max: 1
+    T_exec_max: 1000
+    n_params_per_skill: 20
+    n_samples_per_sim: 1
+    use_gt_effects: True
+  MRAStar:
+    ablation_type: random_model #anchor_only, comment out for none
+    T_plan_max: 1
+    T_exec_max: 800
+    eps: 5
+    num_models: 2
+    wm: [1,1]
+    n_params_per_skill: 5
+    use_gt_effects: False
+    use_multiple_models : True

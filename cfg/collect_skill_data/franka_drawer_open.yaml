@@ -1,0 +1,40 @@
+hydra:
+  run:
+    dir: ${data_root_dir}/${skill.type}/${tag}/${now:%Y-%m-%d_%H-%M-%S}/
+
+defaults:
+  - envs: franka_env_drawer.yaml
+
+data_root_dir: /home/lagrassa/plan_abstractions/skill_data/drawer_open
+# data_root_dir: /mnt/hdd/jacky/plan_abstractions/skill_data/push_rod_franka
+# data_root_dir: /home/mohit/experiment_results/plan_abstractions/skill_data/push_rod_franka/try_0
+
+
+tag: default
+save_every: 1
+seed: 0
+original_cwd: '' # To be overwritten
+
+env: FrankaDrawerEnv
+skill:
+  type: OpenDrawer #
+  T_plan_max: 1
+  T_exec_max: 500
+  param_sampling_probabilities:
+    object_centric: 1.00
+    relation_centric: 0
+    random: 0.00
+    task_oriented: 0 #should be 0 for collect_skill_data
+  replan:
+    use: False
+    interval: 10
+  model_cfg:
+
+n_init_states: 1000
+n_parameters: 24
+n_envs_per_state_param_tuple: 1
+# B/c there are many params per init state, a low n_max_exec + shuffle means we can get a higher init_state to param ratio
+shuffle: True
+n_max_execs: 1000 # use -1 to disable this cap.
+
+

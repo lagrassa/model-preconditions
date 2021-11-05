@@ -1,0 +1,9 @@
+task:
+  env: FrankaRodEnv
+  real_robot: True
+  type: PickRod
+  yaw_same_tol: 0.05
+  position_same_tol : 0.01
+  goal:
+    target_rod: [0, 1] #only 1 can be flagged. This way to avoid 0 index and to be consistent with multi-rod skills
+

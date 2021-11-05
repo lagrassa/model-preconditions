@@ -1,0 +1,47 @@
+dir_prefix: "/home/lagrassa/plan_abstractions/corl/planner"
+per_method_info:
+  anchor_baseline:
+    title: "Ours : one queue"
+    RodInBox:
+      plan_results_dir: anchor_only_real 
+    RodInDrawer:
+      plan_results_dir: rod_in_drawer_anchor_only_real_final
+  ours:
+    title: "Ours : multiple queues"
+    RodInBox:
+      plan_results_dir: rod_in_box_ours_final 
+    RodInDrawer:
+      plan_results_dir: rod_in_drawer_ours_final 
+  random_baseline:
+    title: "Random"
+    RodInBox:
+      plan_results_dir: random_baseline_real_final_fix
+    RodInDrawer:
+      plan_results_dir: random_drawer_baseline_real_final 
+  sim_only:
+    title: "Simulator"
+    RodInBox:
+      plan_results_dir: pick_and_place_sim_only_final  
+    RodInDrawer:
+      plan_results_dir: drawer_sim_only_final
+  a_rod_only:
+    title: "Analytical \n(Pick & Place)" #"analytical\n (robot & rods)"
+    RodInBox:
+      plan_results_dir: pick_and_place_analytical
+  aonly_drawer:
+    title: "Analytical \n(Drawer)" #"analytical\n(robot & drawer)"
+    RodInDrawer:
+      plan_results_dir: rod_in_drawer_drawer_model_only
+
+plot_methods: ["anchor_baseline", "ours", "random_baseline"]
+time_methods: ["anchor_baseline", "ours", "random_baseline", "sim_only", "a_rod_only"]
+#workbook_path: "data/Experiments for revision.xlsx"
+workbook_path: "data/Experiments final.xlsx"
+task_for_bar_graph: RodInDrawer
+plot_one_task_only: True
+eps : 4e-3
+bar_width: 0.15
+bar_spacing: 0.01
+data_type: "plan_success" #plan_found, plan_success
+#cfg["bar_width"] = 0.05 for speaking qualifier
+#cfg["bar_spacing"] = 0.03
