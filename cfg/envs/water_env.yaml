@@ -1,0 +1,11 @@
+env: WaterEnv
+original_cwd: ""
+
+n_init_states: 5
+n_parameters: 48
+# B/c there are many params per init state, a low n_max_exec + shuffle means we can get a higher init_state to param ratio
+shuffle: True
+n_max_execs: 1000 # use -1 to disable this cap.
+
+
+env_props:
