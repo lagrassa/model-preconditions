@@ -1,17 +1,12 @@
 from pathlib import Path
-import matplotlib.pyplot as plt
 import numpy as np
 import copy
-import seaborn as sns
 import logging
 from collections import OrderedDict
 
-from autolab_core import RigidTransform
-from pillar_state import State
-import quaternion
 from softgym.registered_env import env_arg_dict, SOFTGYM_ENVS
 from softgym.utils.normalized_env import normalize
-
+from autolab_core import YamlConfig
 
 from .base_env import BaseEnv
 from .utils import is_pose_of_object_close, get_pose_pillar_state, set_pose, get_joint_position_pillar_state, \
@@ -38,7 +33,9 @@ class WaterEnv(BaseEnv):
 
         if not env_kwargs['use_cached_states']:
             print('Waiting to generate environment variations. May take 1 minute for each variation...')
-        self._scene = normalize(SOFTGYM_ENVS[softgym_env_name](**env_kwargs))
+        self._scene = PassWater1DEnv('both', 'direct')
+        normalize(SOFTGYM_ENVS[args.env_name](**env_kwargs))
+
         self._scene.reset()
 
     @property
@@ -78,3 +75,6 @@ class WaterEnv(BaseEnv):
 
 
 
+if __name__ == "__main__":
+    cfg = YamlConfig("cfg/envs/water_env.yaml")
+    env = WaterEnv(cfg)

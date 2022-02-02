@@ -1,3 +1,8 @@
+import numpy as np
+
+from plan_abstractions.skills.skills import Skill
+
+
 class WaterTransport1D(Skill):
 
     def __init__(self, **kwargs):
@@ -51,4 +56,4 @@ class WaterTransport1D(Skill):
         if self._terminate_on_timeout and controller is not None:
             timeout = t >= controller.horizon + self._termination_buffer_time
         #print(f"Ang close: {ang_close}, Pos close {pos_close}")
-        return timeout or pos_close
+        return timeout

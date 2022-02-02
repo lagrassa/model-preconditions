@@ -9,3 +9,4 @@ n_max_execs: 1000 # use -1 to disable this cap.
 
 
 env_props:
+    pointcloud_dim: 150
