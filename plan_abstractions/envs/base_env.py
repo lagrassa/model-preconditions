@@ -14,11 +14,12 @@ logger.setLevel('INFO')
 
 class BaseEnv(ABC):
 
-    def __init__(self, cfg, for_mde_training=False): #:c bad hack lagrassa is adding to indicate this env is for MDE training and should be treated differently
+    def __init__(self, cfg, for_mde_training=False, is_ig_env=True): #:c bad hack lagrassa is adding to indicate this env is for MDE training and should be treated differently
         self._cfg = cfg
         self._for_mde_training = for_mde_training
-        self._scene = GymScene(cfg['scene'])
-        self._pillar_states = [State() for _ in range(self._scene.n_envs)]
+        if is_ig_env:
+            self._scene = GymScene(cfg['scene'])
+            self._pillar_states = [State() for _ in range(self._scene.n_envs)]
         self._real_robot = False
 
     @classmethod

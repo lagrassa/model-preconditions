@@ -20,7 +20,7 @@ from ..utils import yaw_from_quat, yaw_from_np_quat, get_rod_rel_goal_RigidTrans
 
 class WaterEnv(BaseEnv):
     def __init__(self, cfg, setup_callbacks=[], for_mde_training=False, baseboard = True):
-        super().__init__(cfg, for_mde_training=for_mde_training)
+        super().__init__(cfg, for_mde_training=for_mde_training, is_ig_env=False)
         softgym_env_name = "PassWater"
         env_kwargs = env_arg_dict[softgym_env_name]
 
@@ -33,10 +33,11 @@ class WaterEnv(BaseEnv):
 
         if not env_kwargs['use_cached_states']:
             print('Waiting to generate environment variations. May take 1 minute for each variation...')
-        self._scene = PassWater1DEnv('both', 'direct')
-        normalize(SOFTGYM_ENVS[args.env_name](**env_kwargs))
+        self._scene = normalize(SOFTGYM_ENVS[softgym_env_name](**env_kwargs))
 
         self._scene.reset()
+        self.save_action(np.array([0]))
+        self.step()
 
     @property
     def n_envs(self):
@@ -51,14 +52,14 @@ class WaterEnv(BaseEnv):
         return None
 
     def get_sem_state(self, should_reset_to_viewable=False):
-        return None
+        return self._saved_data[0][0]
 
 
     def save_action(self, action):
         self._saved_action = action
 
     def step(self):
-        self._scene.step(self._saved_action, record_continuous_video=True, img_size=(50,50))
+        self._saved_data = self._scene.step(self._saved_action, record_continuous_video=True, img_size=720)
 
 
     def generate_init_states(self, cfg, min_samples=10, max_samples=1000, init_state_flag=None,
@@ -72,9 +73,18 @@ class WaterEnv(BaseEnv):
         '''
         return None
 
+    def _make_collision_shapes(pillar_state):
+        return []
+    def _update_pillar_state(self, env_idx):
+        pass
+    def set_state(self):
+        pass
 
 
 
 if __name__ == "__main__":
     cfg = YamlConfig("cfg/envs/water_env.yaml")
     env = WaterEnv(cfg)
+    env.save_action(np.array([0.01]))
+    env.step()
+    state = env.get_sem_state(should_reset_to_viewable=False)

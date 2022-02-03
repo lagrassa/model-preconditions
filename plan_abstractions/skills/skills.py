@@ -385,7 +385,6 @@ class Skill(ABC):
         """
         pass
 
-    @abstractmethod
     def unpack_parameters(self, parameters):
         '''
         Returns N arguments that represent semantically useful parts of the parameters. Utility function

@@ -7,6 +7,12 @@ n_parameters: 48
 shuffle: True
 n_max_execs: 1000 # use -1 to disable this cap.
 
+skill_cfg:
+    param_sampling_probabilities:
+        object_centric: 0.00
+        relation_centric: 0
+        random: 1.00
+        task_oriented: 0 #should be 0 for collect_skill_data
 
 env_props:
     pointcloud_dim: 150

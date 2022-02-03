@@ -1,12 +1,16 @@
 import numpy as np
 
 from plan_abstractions.skills.skills import Skill
+from plan_abstractions.controllers.water_controllers import WaterTransportController
 
 
 class WaterTransport1D(Skill):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.param_shape = (1,)
+        self._terminate_on_timeout=True
+        self.total_horizon = 10
 
     def pillar_state_to_internal_state(self, state):
         return None
@@ -24,7 +28,7 @@ class WaterTransport1D(Skill):
 
     def _gen_random_parameters(self, env, state):
         while True:
-            random_dist = np.random.uniform(low=-1, high=1)
+            random_dist = np.random.uniform(low=0.1, high=0.2)
             yield np.array([random_dist])
 
     def _gen_relation_centric_parameters(self, env, state):
@@ -36,17 +40,14 @@ class WaterTransport1D(Skill):
 
     def apply_action(self, env, env_idx, action):
         assert env_idx == 0
-        env._save_action(action)
+        env.save_action(action)
 
-    def make_controllers(self, initial_states, parameters, T_plan_max, t, dt, real_robot, avoid_obstacle_height=True):
+    def make_controllers(self, initial_states, parameters, T_plan_max=1, t=0, dt=0.01, real_robot=False, avoid_obstacle_height=True):
         info_plans = []
         controllers = []
         for env_idx, initial_state in enumerate(initial_states):
-            internal_state = self.pillar_state_to_internal_state(initial_state)
-            curr_pose, goal_pose = seven_dim_internal_state_to_pose(internal_state, parameters, env_idx)
-            controller = PositionWaypointController(dt, avoid_obstacle_height=avoid_obstacle_height)
-            info_plan = controller.plan(curr_pose, goal_pose,  self._z_height)
-
+            controller = WaterTransportController()
+            info_plan = controller.plan(curr_x = initial_state[0], goal_x = parameters[0], total_horizon = 10)
             controllers.append(controller)
             info_plans.append(info_plan)
         return controllers, info_plans
