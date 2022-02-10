@@ -22,7 +22,6 @@ class BaseTask(ABC):
     def setup_callbacks(self):
         return self._setup_callbacks
 
-    @abstractmethod
     def pillar_state_to_internal_state(self, pillar_state):
         """Converts to an environment/task specific representation of the state."""
         pass
@@ -31,7 +30,6 @@ class BaseTask(ABC):
     def is_goal_state(self, pillar_state):
         pass
 
-    @abstractmethod
     def is_valid_state(self, pillar_state, skills):
         """Checks the validity of the current state. Pruning away states far
         away from the goal will help search."""
@@ -73,14 +71,12 @@ class BaseTask(ABC):
         """
         pass
 
-    @abstractmethod
     def pretty_print_goal_params(self):
         pass
 
     def set_detector(self):
         pass
     
-    @abstractmethod
     def pretty_print_with_reference_to_pillar_state(self, pillar_state):
         pass
 

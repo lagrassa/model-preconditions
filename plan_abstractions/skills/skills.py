@@ -198,10 +198,12 @@ class Skill(ABC):
             if debug:
                 pb_env.show_effects(effects["end_states"])
             #add effects with that mask
-            effects_all["end_states"][idx_mask] = effects["end_states"]
+            effects_all["end_states"][idx_mask] = [effects_all["end_states"][i] for i, use_idx in enumerate(idx_mask) if use_idx]
             effects_all["costs"][idx_mask] = effects["costs"]
-            effects_all["T_exec"][idx_mask] = effects["T_exec"]
-            effects_all["info_plan"][idx_mask] = [plan_dict for plan_dict in effects["info_plan"]]
+            if "T_exec" in effects.keys():
+                effects_all["T_exec"][idx_mask] = effects["T_exec"]
+            if "info_plan" in effects.keys():
+                effects_all["info_plan"][idx_mask] = [plan_dict for plan_dict in effects["info_plan"]]
         return effects_all
 
 

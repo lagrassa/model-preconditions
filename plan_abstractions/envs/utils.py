@@ -95,3 +95,7 @@ def make_env_with_init_states(env_cls, cfg, init_state_kwargs={}, setup_callback
     initial_state = next(initial_state_gen)
     env.set_all_states([initial_state] * env.n_envs, n_steps=10)
     return env
+
+def make_env(env_cls, cfg):
+    env = env_cls(cfg)
+    return env

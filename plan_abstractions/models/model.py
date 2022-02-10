@@ -49,7 +49,10 @@ class SEMModel(TransitionModel):
         # create deviation model here
         super().__init__(model_cfg)
         sem_cfg = model_cfg["sem_cfg"]
-        sem_state_obj_names = sem_cfg["sem_state_obj_names"]
+        if sem_cfg.get("pillar_state_convert", True):
+            sem_state_obj_names = sem_cfg["sem_state_obj_names"]
+        else:
+            sem_state_obj_names = None
         self._sem_wrapper = create_sem_wrapper_from_cfg(sem_cfg, sem_state_obj_names=sem_state_obj_names, cache_dir=cache_dir)
 
     def apply(self, states, params, env, T_plan_max, T_exec_max, skill, pb_env):
@@ -57,16 +60,23 @@ class SEMModel(TransitionModel):
             self._sem_wrapper(state, parameters)
             for state, parameters in zip(states, params)
         ]
-        effects = {k: [] for k in effects_list[0]}
-        for i in range(len(effects_list)):
-            for k in effects:
-                effects[k].append(effects_list[i][k])
+        if isinstance(effects_list[0], np.ndarray):
+            effects = {}
+            effects_list = np.vstack(effects_list)
+            effects["end_states"] = effects_list
+            effects["costs"] = np.ones((len(effects_list),))
 
-        for i, param in enumerate(params):
-            effects["end_states"][i] = effects["end_states"][i][0]
-            effects["costs"][i] = effects["costs"][i][0]
-            effects["T_exec"][i] = effects["T_exec"][i][0]
-            effects["info_plan"][i]["T_plan"] = effects["info_plan"][i]["T_plan"][0]
+        else: #uses old effects specification
+            effects = {k: [] for k in effects_list[0]}
+            for i in range(len(effects_list)):
+                for k in effects:
+                    effects[k].append(effects_list[i][k])
+
+            for i, param in enumerate(params):
+                effects["end_states"][i] = effects["end_states"][i][0]
+                effects["costs"][i] = effects["costs"][i][0]
+                effects["T_exec"][i] = effects["T_exec"][i][0]
+                effects["info_plan"][i]["T_plan"] = effects["info_plan"][i]["T_plan"][0]
         return effects
 
 

@@ -115,7 +115,7 @@ class MLP(pl.LightningModule):
             nn.Linear(input_dim, N),
             nn.ReLU(),
             nn.Linear(N, N),
-            nn.Dropout(0.5),
+            #nn.Dropout(0.5),
             nn.ReLU(),
             last_layer
         )

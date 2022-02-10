@@ -3,17 +3,17 @@ __spec__ = None  # to allow for ipdb during wandb
 
 from sklearn.model_selection import train_test_split
 from isaacgym import gymapi
-from autolab_core import YamlConfig
-
 from plan_abstractions.learning.data_utils import make_deviation_datalists, eval_model, train_and_fit_model, \
     remove_outliers
 from plan_abstractions.models.mdes import *
+#from plan_abstractions.models.gnn_dev_model import ECNModel
 
 import logging
 import os
 from pathlib import Path
 
 import numpy as np
+import hydra
 import wandb
 
 from plan_abstractions.utils import get_formatted_time
@@ -21,22 +21,12 @@ from isaacgym_utils.math_utils import set_seed
 
 logger = logging.getLogger(__name__)
 logger.setLevel('INFO')
-def make_vector_datas(cfg):
-    data_root = cfg["data"]["root"]
-    exp_name = cfg["data"]["tags"][0]
-    data_dir = os.path.join(data_root, exp_name)
-    init_state_data = np.load(os.path.join(data_dir, "init_states.npy"))
-    end_state_data = np.load(os.path.join(data_dir, "end_states.npy"))
-    param_data = np.load(os.path.join(data_dir, "param_data.npy"))
-    processed_datas = {}
-    processed_datas['init_states'] = init_state_data
-    processed_datas['end_states'] =  end_state_data
-    processed_datas['parameters']  = param_data
-    return processed_datas
-def main():
-    cfg = YamlConfig("cfg/train/mde_train/learned_linear.yaml")
+
+
+@hydra.main(config_path='../cfg/train/mde_train', config_name='train_sweep_model_validation_easy_only.yaml')
+def main(cfg):
     log = logging.getLogger(__name__)
-    cfg['original_cwd'] = os.getcwd() #hydra.utils.get_original_cwd()
+    cfg['original_cwd'] = hydra.utils.get_original_cwd()
     set_seed(cfg['seed'])
     # iterate through all train data, collect SEM preds, then train validation model
     if 'save_path_prefix' in cfg and len(cfg['save_path_prefix']) > 0:
@@ -48,9 +38,8 @@ def main():
     if "dataset_file_cache" in cfg.keys():
         dataset_data = np.load(cfg["dataset_file_cache"], allow_pickle=True).item()
     else:
-        processed_datas = make_vector_datas(cfg)
         dataset_data = make_deviation_datalists(cfg, feature_type=cfg.get('feature_type', 'dists_and_actions_only'), shuffle=cfg.get('train', True),
-                                                processed_datas = processed_datas, graphs=cfg.get("graphs", False))  # shuffle=cfg.get('train', True))
+                                                graphs=cfg.get("graphs", False))  # shuffle=cfg.get('train', True))
         if "dataset_save_loc" in cfg.keys():
             np.save(cfg["dataset_save_loc"], dataset_data)
     dataset_data = remove_outliers(dataset_data)

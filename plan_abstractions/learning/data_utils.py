@@ -89,9 +89,8 @@ def add_box_or_drawer_to_env(env, pillar_state):
         env.reset_real_drawer(FAR_POS_DRAWER)
         env.reset_real_box(goal_pose)
 
-def remove_outliers(dataset):
+def remove_outliers(dataset, high_deviation=10.5):
     new_dataset = {}
-    high_deviation = 0.5 #unrealistic: probably simulation error/something flying
     data_idxs = [0,1]
     for data_key in ["training", "test"]:
         new_dataset[data_key] = [[],[]]
@@ -105,8 +104,32 @@ def remove_outliers(dataset):
     return new_dataset
 
 
-
 def extract_model_deviations_from_processed_datas(processed_datas, skill, env_cls, sem_state_obj_names, plot,
+                                                  use_sim_model=False, graph_transitions=False, save_all=False,
+                                                  do_data_aug=False, feature_type=True, data_aug_cfg=None, env=None,
+                                                  shuffle=True):
+    if "Rod" in env_cls.__name__ or "Drawer" in env_cls.__name__:
+        return rod_extract_model_deviations_from_processed_datas(processed_datas, skill, env_cls, sem_state_obj_names, plot, use_sim_model, graph_transitions, save_all, do_data_aug, feature_type, data_aug_cfg, env, shuffle)
+
+    deviations = []
+    init_states = processed_datas["init_states"]
+    parameters = processed_datas["parameters"]
+    end_states = processed_datas["end_states"]
+    for init_state, parameter, end_state in zip(init_states, parameters, end_states):
+        pred_effects = skill.effects(init_state, parameter)
+        deviation = np.linalg.norm(pred_effects-end_state)
+        deviations.append(deviation)
+    states_and_parameters = np.hstack([init_states, parameters])
+    order = np.arange(len(deviations))
+    random_order = np.random.permutation(order)
+    deviations = np.array(deviations)
+    if shuffle:
+        order = random_order
+    return deviations[order].reshape(-1, 1), states_and_parameters[order]
+    return pred_effects
+
+
+def rod_extract_model_deviations_from_processed_datas(processed_datas, skill, env_cls, sem_state_obj_names, plot,
                                                   use_sim_model=False, graph_transitions=False, save_all=False,
                                                   do_data_aug=False, feature_type=True, data_aug_cfg=None, env=None, shuffle=True):
     if use_sim_model:
@@ -515,9 +538,9 @@ def get_min_dist(states_and_params):
     return min_dist
 
 
-def make_deviation_datalists(cfg, feature_type=False, plot=0, shuffle=True, graphs=False, setup_callbacks=[]):
-    from ..envs import FrankaRodEnv, FrankaDrawerEnv
-    from ..skills import FreeSpaceMoveToGroundFranka, OpenDrawer, LiftAndPlace, LiftAndDrop, Pick
+def make_deviation_datalists(cfg, feature_type=False, plot=0, shuffle=True, graphs=False, setup_callbacks=[], processed_datas=None):
+    from ..envs import FrankaRodEnv, FrankaDrawerEnv, WaterEnv
+    from ..skills import FreeSpaceMoveToGroundFranka, OpenDrawer, LiftAndPlace, LiftAndDrop, Pick, WaterTransport1D
     states_and_parameters_train_all_skills = []
     states_and_parameters_val_all_skills = []
     deviations_train_all_skills = []
@@ -553,11 +576,13 @@ def make_deviation_datalists(cfg, feature_type=False, plot=0, shuffle=True, grap
                                                                      feature_type=feature_type,
                                                                      shuffle=shuffle, graphs=graphs,
                                                                      use_sim_model=use_sim_model,
+                                                                     processed_datas=processed_datas,
                                                                      env=env)
         states_and_parameters_val_this_skill, deviations_val_this_skill = get_deviations_from_data(cfg, "val_root", "val_tags", env_cls, skill,
                                                                              skill_cfg, skill_cls, plot, shuffle=shuffle,
                                                                              save_all=True, graphs=graphs,
                                                                              feature_type=feature_type,
+                                                                             processed_datas=processed_datas,
                                                                              use_sim_model=use_sim_model, env=env)
         states_and_parameters_train_all_skills.append(states_and_parameters_this_skill)
         states_and_parameters_val_all_skills.append(states_and_parameters_val_this_skill)
@@ -579,14 +604,15 @@ def make_deviation_datalists(cfg, feature_type=False, plot=0, shuffle=True, grap
 
 
 def get_deviations_from_data(cfg, train_data_key, data_tags_key, env_cls, skill, skill_cfg, skill_cls, plot,
-                             save_all=False, feature_type=False, do_data_aug=False, use_sim_model=False,
-                             graphs=False, env=None, shuffle=False):
-    datas = get_datas(skill_cfg["data"], data_root_key=train_data_key, data_tags_key=data_tags_key)
-    sem_state_obj_names = skill_cfg["data"]["sem_state_obj_names"]
-    processed_datas = process_datas(datas, list(sem_state_obj_names), env_cls, skill_cls, use_settled_init_states=True,
-                                    only_terminating_trajs=skill_cfg.get("only_terminated", False),
-                                    get_transitions=skill_cfg.get("low_level"),
-                                    graph_transitions=graphs)
+                             save_all=False, feature_type=False, do_data_aug=False, use_sim_model=False, sem_state_obj_names=None,
+                             graphs=False, env=None, shuffle=False, processed_datas=None):
+    if processed_datas is None:
+        datas = get_datas(skill_cfg["data"], data_root_key=train_data_key, data_tags_key=data_tags_key)
+        sem_state_obj_names = skill_cfg["data"]["sem_state_obj_names"]
+        processed_datas = process_datas(datas, list(sem_state_obj_names), env_cls, skill_cls, use_settled_init_states=True,
+                                        only_terminating_trajs=skill_cfg.get("only_terminated", False),
+                                        get_transitions=skill_cfg.get("low_level"),
+                                        graph_transitions=graphs)
     if graphs:
         distance_function = graph_distance_function
     else:

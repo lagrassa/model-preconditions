@@ -95,8 +95,6 @@ class MoveGripperToPose(BaseTask):
         return position_distance
 
     def is_valid_state(self, pillar_state, skills):
-        # TODO
-        # Check for the preconditions of all the skills
         return True
 
     def evaluate(self, pillar_state):

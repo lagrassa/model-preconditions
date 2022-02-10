@@ -3,6 +3,7 @@ logger = logging.getLogger(__name__)
 
 from pathlib import Path
 from collections import OrderedDict
+from .water_models import *
 
 import numpy as np
 import wandb
@@ -12,50 +13,49 @@ from torch_utils import get_numpy, from_numpy
 
 from ..envs import *
 from ..learning.data_utils import unnormalize_data
-from .analytical_models import SEMSimpleFreeSpace, SEMAnalyticalRodsAndRobot, SEMAnalyticalInsert, SEMAnalyticalDrawerAndRobot
 
 
 def create_sem_wrapper_from_cfg(cfg, cache_dir='/tmp',skill_cls=None, sem_state_obj_names=None):
     learned_models = (),
     analytical_models = ('SEMSimpleFreeSpace', 'SEMAnalyticalRodsAndRobot', "SEMAnalyticalInsert", "SEMSimpleDrawerOpen", "SEMAnalyticalDrawerAndRobot")
-    all_defined_models = learned_models + analytical_models
-    if cfg['type'] in all_defined_models:
-        dim_state = cfg.get('dim_state', 12)
-        if cfg['type'] in learned_models:
-            sem = eval(cfg['type']).load_from_checkpoint(ckpt_file.name).cuda()
-            sem.train(False)
-            is_analytical=False
-        elif cfg['type'] == "SEMAnalyticalDrawerAndRobot":
-            drawer_edge_dims = cfg["drawer_edge_dims"]
-            sem = eval(cfg['type'])(2, dim_state, drawer_edge_dims)
-            is_analytical = True
-        else:
-            sem = eval(cfg['type'])(2, dim_state)
-            is_analytical=True
-
-
-        env_cls = eval(cfg['env'])
-        sem_wrapper = SEMWrapper(sem, env_cls, skill_cls, {}, {'num_samples':1}, sem_state_obj_names=sem_state_obj_names, is_analytical=is_analytical)
+    dim_state = cfg.get('dim_state', 12)
+    is_analytical = False
+    if cfg['type'] in learned_models:
+        sem = eval(cfg['type']).load_from_checkpoint(ckpt_file.name).cuda()
+        sem.train(False)
+    elif cfg['type'] == "SEMAnalyticalDrawerAndRobot":
+        drawer_edge_dims = cfg["drawer_edge_dims"]
+        sem = eval(cfg['type'])(2, dim_state, drawer_edge_dims)
+        is_analytical = True
+    elif "Linear" in cfg['type']:
+        sem = eval(cfg['type'])(cfg["model_cfg"])
     else:
-        raise ValueError(f"Unknown SEM type {cfg['type']}")
+        sem = eval(cfg['type'])(2, dim_state)
+        is_analytical=True
+
+    pillar_state_convert = cfg.get('pillar_state_convert', True)
+    env_cls = eval(cfg['env'])
+    sem_wrapper = SEMWrapper(sem, env_cls, skill_cls, {}, {'num_samples':1}, pillar_state_convert=pillar_state_convert, sem_state_obj_names=sem_state_obj_names, is_analytical=is_analytical)
 
     return sem_wrapper
 
 
 class SEMWrapper:
 
-    def __init__(self, sem, env_cls, skill_cls, train_cfg, predict_cfg, sem_state_obj_names=None, is_analytical=False):
+    def __init__(self, sem, env_cls, skill_cls, train_cfg, predict_cfg, sem_state_obj_names=None, is_analytical=False, pillar_state_convert=True):
         self._sem = sem
         self._env_cls = env_cls
         self._skill_cls = skill_cls
         self._train_cfg = train_cfg
         self._predict_cfg = predict_cfg
-        if sem_state_obj_names is None:
-            self._sem_state_obj_names = list(self._train_cfg['data']['sem_state_obj_names'])
-        else:
-            self._sem_state_obj_names = sem_state_obj_names
+        self._pillar_state_convert = pillar_state_convert
+        if self._pillar_state_convert:
+            if sem_state_obj_names is None:
+                self._sem_state_obj_names = list(self._train_cfg['data']['sem_state_obj_names'])
+            else:
+                self._sem_state_obj_names = sem_state_obj_names
+            self._use_diff_states = True #self._train_cfg['data']['state_info']['use_state_diff_in_end_state']
 
-        self._use_diff_states = True #self._train_cfg['data']['state_info']['use_state_diff_in_end_state']
 
         self._is_analytical = is_analytical
 
@@ -140,8 +140,13 @@ class SEMWrapper:
             }
         }
 
+    def __call__(self, state, parameters):
+        if self._pillar_state_convert:
+            return self.call_pillar_state(state, parameters)
+        return self._sem.predict(state, parameters)
 
-    def __call__(self, pillar_state, parameters):
+    def call_pillar_state(self, pillar_state, parameters):
+
         if not self._sem.fixed_input_size:
             return self.get_gnn_sem_model_predictions(pillar_state, parameters)
         sem_state = self._env_cls.pillar_state_to_sem_state(pillar_state, self._sem_state_obj_names,
