@@ -28,16 +28,14 @@ class WaterEnv(BaseEnv):
         env_kwargs['use_cached_states'] = False
         env_kwargs['save_cached_states'] = False
         env_kwargs['num_variations'] = 1
-        env_kwargs['render'] = True
-        env_kwargs['headless'] = True
+        env_kwargs['render'] = 1#True
+        env_kwargs['headless'] = 1#False
 
         if not env_kwargs['use_cached_states']:
             print('Waiting to generate environment variations. May take 1 minute for each variation...')
         self._scene = normalize(SOFTGYM_ENVS[softgym_env_name](**env_kwargs))
+        self.reset()
 
-        self._scene.reset()
-        self.save_action(np.array([0]))
-        self.step()
 
     @property
     def n_envs(self):
@@ -54,11 +52,17 @@ class WaterEnv(BaseEnv):
     def get_sem_state(self, should_reset_to_viewable=False):
         return self._saved_data[0][0]
 
+    def reset(self, n_steps=10):
+        self._scene.reset()
+        self.save_action(np.array([0]))
+        for i in range(n_steps):
+            self.step()
 
     def save_action(self, action):
         self._saved_action = action
 
     def step(self):
+        print("saved action", self._saved_action)
         self._saved_data = self._scene.step(self._saved_action, record_continuous_video=True, img_size=720)
 
 

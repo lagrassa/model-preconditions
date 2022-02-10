@@ -28,7 +28,8 @@ class WaterTransport1D(Skill):
 
     def _gen_random_parameters(self, env, state):
         while True:
-            random_dist = np.random.uniform(low=0.1, high=0.2)
+            #random_dist = np.random.uniform(low=0.1, high=0.2)
+            random_dist = np.random.uniform(low=0.05, high=3.4)
             yield np.array([random_dist])
 
     def _gen_relation_centric_parameters(self, env, state):
@@ -42,12 +43,12 @@ class WaterTransport1D(Skill):
         assert env_idx == 0
         env.save_action(action)
 
-    def make_controllers(self, initial_states, parameters, T_plan_max=1, t=0, dt=0.01, real_robot=False, avoid_obstacle_height=True):
+    def make_controllers(self, initial_states, parameters, T_plan_max=1, t=0, dt=0.01,total_horizon=5, real_robot=False, avoid_obstacle_height=True):
         info_plans = []
         controllers = []
         for env_idx, initial_state in enumerate(initial_states):
             controller = WaterTransportController()
-            info_plan = controller.plan(curr_x = initial_state[0], goal_x = parameters[0], total_horizon = 10)
+            info_plan = controller.plan(curr_x = initial_state[0], goal_x = parameters[0], total_horizon = total_horizon)
             controllers.append(controller)
             info_plans.append(info_plan)
         return controllers, info_plans
