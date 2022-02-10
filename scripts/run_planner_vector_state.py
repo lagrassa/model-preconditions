@@ -56,9 +56,11 @@ def run_planner_on_task(cfg, env, skills, task, save_dir, init_state, eval_env =
 
     # Save initial state to replay during debug_planner
     data_to_save = {
-        'found_plan': found_plan,
-        'init_state': init_state.get_serialized_string(),
-    }
+        'found_plan': found_plan}
+    if isinstance(init_state, np.ndarray):
+        data_to_save['init_state'] = init_state
+    else:
+        data_to_save['init_state']= init_state.get_serialized_string()
     env_data_path = save_dir / 'env_data.pkl'
     with open(env_data_path, 'wb') as f:
         dump(data_to_save, f)

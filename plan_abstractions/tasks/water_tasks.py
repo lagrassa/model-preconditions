@@ -40,7 +40,7 @@ class MoveWater(BaseTask):
 
     def is_goal_state(self, vector_state):
         if self.distance_to_goal_state(vector_state) < self._position_tol:
-            if vector_state[-1] > self._water_out_tol:
+            if vector_state[-1] < self._water_out_tol:
                 return True
         return False
 

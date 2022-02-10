@@ -3,8 +3,8 @@ task:
   #real_env: RealFrankaRodEnv
   type: MoveWater
   goal:
-    position_tol: 0.005
-    water_out_tol: 0.005
+    position_tol: 0.3
+    water_out_tol: 0.5
     pose: [0.44] #x,y
     randomize: False
     goal_pose_ranges:

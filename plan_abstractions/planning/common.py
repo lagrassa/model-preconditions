@@ -17,15 +17,11 @@ class Action:
         self.T_exec_coeff = T_exec_coeff
         self.cost_coeff = cost_coeff
 
-    @property
-    def T_plan(self):
-        return self.info_plan['T_plan']
+
 
     @property
     def total_cost(self):
-        return self.T_plan_coeff * self.T_plan + \
-                self.T_exec_coeff * self.T_exec + \
-                self.cost_coeff * self.cost
+        return self.cost_coeff * self.cost
 
 
 class PathStep:
@@ -48,7 +44,10 @@ class PathStep:
     # for pickling
     def __getstate__(self):
         state_dict = self.__dict__.copy()
-        state_dict['pillar_state'] = state_dict['pillar_state'].get_serialized_string()
+        if isinstance(state_dict['pillar_state'], np.ndarray):
+            state_dict['pillar_state'] = state_dict['pillar_state']
+        else:
+            state_dict['pillar_state'] = state_dict['pillar_state'].get_serialized_string()
         return state_dict
 
     def __setstate__(self, state_dict):

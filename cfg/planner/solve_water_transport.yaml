@@ -72,6 +72,6 @@ planner:
     eps: 5
     num_models: 1
     wm: [10,1]
-    n_params_per_skill: 5
+    n_params_per_skill: 20
     use_gt_effects: False
     use_multiple_models : True

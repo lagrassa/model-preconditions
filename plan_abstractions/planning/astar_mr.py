@@ -139,7 +139,7 @@ class MRAStar(Planner):
                 effects, _ = self._compute_effects(skill_idx, node, params, param_types)
 
             for i, param in enumerate(params):
-                if effects["end_states"][i] == None:
+                if not isinstance(effects["end_states"][0], np.ndarray) and effects["end_states"][i] == None:
                     print("No valid models for this set of states and params")
                     continue
                 action = Action(skill_idx, param,
