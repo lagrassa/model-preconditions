@@ -30,6 +30,9 @@ class WaterEnv(BaseEnv):
         env_kwargs['num_variations'] = 1
         env_kwargs['render'] = 1#True
         env_kwargs['headless'] = 1#False
+        self._n_envs=1
+        self._env_idxs=[0]
+        self.dt = 0.5 #alex fix this
 
         if not env_kwargs['use_cached_states']:
             print('Waiting to generate environment variations. May take 1 minute for each variation...')
@@ -40,6 +43,10 @@ class WaterEnv(BaseEnv):
     @property
     def n_envs(self):
         return self._n_envs
+
+    @property
+    def env_idxs(self):
+        return self._env_idxs
 
     @staticmethod
     def pillar_state_to_sem_state(pillar_state, sem_state_obj_names, anchor_obj_name=None, ref_pillar_state=None):
@@ -62,8 +69,9 @@ class WaterEnv(BaseEnv):
         self._saved_action = action
 
     def step(self):
-        print("saved action", self._saved_action)
         self._saved_data = self._scene.step(self._saved_action, record_continuous_video=True, img_size=720)
+        return np.ones((self.n_envs,))
+        
 
 
     def generate_init_states(self, cfg, min_samples=10, max_samples=1000, init_state_flag=None,
@@ -82,7 +90,7 @@ class WaterEnv(BaseEnv):
     def _update_pillar_state(self, env_idx):
         pass
     def set_state(self):
-        pass
+        self.reset()
 
 
 

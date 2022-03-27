@@ -100,9 +100,12 @@ class BaseEnv(ABC):
         return State.create_from_serialized_string(self._pillar_states[env_idx].get_serialized_string())
 
     def get_all_states(self, env_idxs=None):
-        if env_idxs is None:
-            env_idxs = self._scene.env_idxs
-        return [self.get_state(env_idx) for env_idx in env_idxs]
+        print("Warning: temporary hack. assumes not ig")
+        return [self.get_sem_state()]
+
+        #if env_idxs is None:
+        #    env_idxs = self._scene.env_idxs
+        #return [self.get_state(env_idx) for env_idx in env_idxs]
 
     def _compute_costs(self):
         return np.zeros(self.n_envs)

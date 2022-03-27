@@ -4,7 +4,7 @@ task:
   type: MoveWater
   goal:
     position_tol: 0.3
-    water_out_tol: 0.5
+    water_out_tol: 0.1
     pose: [0.44] #x,y
     randomize: False
     goal_pose_ranges:

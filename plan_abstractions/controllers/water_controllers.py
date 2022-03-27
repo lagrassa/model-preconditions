@@ -15,20 +15,24 @@ class WaterTransportController(BaseController):
     def __init__(self):
         super().__init__()
         self._kp = 1
+        self._end_buffer = 5
 
     def _plan(self, curr_x, goal_x, total_horizon=None):
-        self._traj_pos = np.linspace(curr_x, goal_x, total_horizon)
+        self._traj_pos = np.linspace(curr_x, goal_x, total_horizon)[1:]
+        self.goal_x =  goal_x
         return {
             'T_plan': 0
         }
 
     @property
     def horizon(self):
-        return len(self._traj_pos)
+        return len(self._traj_pos) + self._end_buffer
 
     def _call(self, curr_state, t, delta=False):
+        t = min(t, len(self._traj_pos)-1)
         desired_state = self._traj_pos[t]
-        dx = self._kp*(desired_state - curr_state[0])
+        error = desired_state - curr_state[0]
+        dx = self._kp*(error)
         action = np.array([dx])
         return action
 

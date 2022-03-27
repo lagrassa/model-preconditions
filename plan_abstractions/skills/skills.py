@@ -426,7 +426,7 @@ class Skill(ABC):
             env.set_all_states(initial_states, env_idxs=env_idxs, n_steps=10)
 
         initial_settled_states = env.get_all_states(env_idxs=env_idxs)
-        controllers, info_plans = self.make_controllers(initial_settled_states, parameters, T_plan_max, 0, env.dt, env._real_robot)
+        controllers, info_plans = self.make_controllers(initial_settled_states, parameters, T_plan_max, 0, dt=env.dt, real_robot=env._real_robot)
 
         data = {
             'end_states': [None] * len(env_idxs),
@@ -454,14 +454,15 @@ class Skill(ABC):
                 if t == 0 and hasattr(env, 'set_skill_params'):
                     env.set_skill_params(env_idx, parameters[env_idx])
 
-                pillar_state = env.get_state(env_idx)
-                internal_state = self.pillar_state_to_internal_state(pillar_state)
+                pillar_state = env.get_sem_state(env_idx)
+                #internal_state = self.pillar_state_to_internal_state(pillar_state)
+                internal_state = pillar_state
                 controller = controllers[env_idx]
                 if self.check_termination_condition(internal_state, parameters[env_idx], t, controller, env_idx):
                     if env._real_robot:
                         data['end_states'][env_idx] = env.get_end_state(should_reset_to_viewable = self._should_reset_to_viewable).get_serialized_string()
                     else:
-                        data['end_states'][env_idx] = pillar_state.get_serialized_string()
+                        data['end_states'][env_idx] = pillar_state #pillar_state.get_serialized_string()
                     data['terminated'][env_idx] = True
                     #assert len(data["low_level_states"][env_idx]) == int(t)
                     data['T_exec'][env_idx] = t

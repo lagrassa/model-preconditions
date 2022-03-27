@@ -4,7 +4,7 @@ from sklearn.linear_model import LinearRegression
 
 
 class RigidModel:
-    def __init__(self, dim_state = None):
+    def __init__(self, dim_state = None, model_cfg=None):
         self._dim_state = dim_state
 
     @property

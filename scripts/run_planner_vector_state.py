@@ -68,11 +68,6 @@ def run_planner_on_task(cfg, env, skills, task, save_dir, init_state, eval_env =
 
     logger.info('Saving plan...')
     planner.save_plan(plan, save_dir / 'plan.pkl')
-    logger.info('Saving planner...')
-    try:
-        planner.save(save_dir / 'planner.pkl')
-    except:
-        print("NO plan found, no saving")
 
     if found_plan:
         plan_to_execute = plan
@@ -109,10 +104,11 @@ def run_planner_on_task(cfg, env, skills, task, save_dir, init_state, eval_env =
     else:
         T_exec_max = cfg['T_exec_max_real']
     if len(plan_to_execute) > 0 and found_plan:
-        input("Ready to execute plan?")
+        #input("Ready to execute plan?")
         plan_exec_data = execute_plan(eval_env, plan_to_execute, skills, task,
                                       cfg['planner'][planner_type]['T_plan_max'], 
-                                      T_exec_max=T_exec_max)
+                                      T_exec_max=T_exec_max, set_states=0)
+        print("Reached goal",plan_exec_data['reached_goal'])
         logger.info(f"These envs reached goals: {np.argwhere(plan_exec_data['reached_goal']).flatten()}")
         logger.info(f"Num model evals: {planner.num_model_evals}")
         with open(save_dir / 'plan_exec_data.pkl', 'wb') as f:
@@ -185,7 +181,7 @@ def main(cfg):
     else:
         real_robot = False
         def init_state_gen():
-            while True:
+            for _ in range(cfg['n_init_states']):
                 env.reset()
                 yield None
         initial_state_generator = init_state_gen()

@@ -332,10 +332,13 @@ def visualize_plan(plan, root, env, cfg):
         state = child
 
 
-def execute_plan(env, plan_to_execute, skills, task, T_plan_max, T_exec_max):
+def execute_plan(env, plan_to_execute, skills, task, T_plan_max, T_exec_max, set_states=True):
     print("Executing plan")
     init_state = plan_to_execute[0].pillar_state
-    env.set_all_states([init_state] * env.n_envs, n_steps=10)
+    if set_states:
+        env.set_all_states([init_state] * env.n_envs, n_steps=10)
+    else:
+        env.reset()
     
     plan_exec_data = {
         'plan_to_execute': plan_to_execute,
@@ -345,7 +348,7 @@ def execute_plan(env, plan_to_execute, skills, task, T_plan_max, T_exec_max):
     
     for step in tqdm(plan_to_execute[1:], desc='Executing Plan'):
         skill = skills[step.action_in.skill_idx]
-        curr_states = env.get_all_states()
+        curr_states = [env.get_sem_state()]
         parameter_matrix = np.vstack([[step.action_in.params] for _ in range(env.n_envs)])
 
         if hasattr(env, 'set_skill_params'):
@@ -357,7 +360,7 @@ def execute_plan(env, plan_to_execute, skills, task, T_plan_max, T_exec_max):
         del skill_exec_data['initial_settled_states']
         plan_exec_data['skill_exec_data'].append(skill_exec_data)
     
-    for env_idx, state in enumerate(env.get_all_states()):
+    for env_idx, state in enumerate([env.get_sem_state()]):
         plan_exec_data['reached_goal'][env_idx] = task.is_goal_state(state)
 
     return plan_exec_data

@@ -56,6 +56,23 @@ skills:
           use_deviation_model: 0
           env: WaterEnv
           type: MLPModel
+      SEMModel2:
+        debug_name : LearnedLinear
+        type: SEMModel
+        sem_cfg:
+          type: LinearOutModel #DrawerAndRobot #SEMSimpleFreeSpace # SEMMLP
+          env: WaterEnv #actually correct
+          dim_state: 7
+          pillar_state_convert: False
+          model_cfg:
+            save_file: /home/lagrassa/git/model-preconditions/data/LinearOutModel.npy
+            load: True
+        deviation_cfg:
+          use_deviation_model: 0
+          env: WaterEnv
+          type: MLPModel
+          run_path: iam-lab/water/runs/21lu1iju #3u8zgsxf #2u3usdg5  #186nwwoc #33ehdkd9 #19471rud  #3re6za4d #2fsta3ma #1frshlay #25b5uh55
+          acceptable_deviation: 0.05 #0.08
 planner:
   type: MRAStar # MCTS, AStar
   timeout: 300
@@ -67,6 +84,6 @@ planner:
     eps: 5
     num_models: 1
     wm: [10,1]
-    n_params_per_skill: 5
+    n_params_per_skill: 20
     use_gt_effects: False
     use_multiple_models : True

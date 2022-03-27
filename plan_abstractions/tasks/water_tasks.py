@@ -46,3 +46,10 @@ class MoveWater(BaseTask):
 
     def distance_to_goal_state(self, vector_state):
         return np.linalg.norm(vector_state[0]-self._goal_pose)
+
+    def resample_goal(self, env=None):
+        old_goal = np.copy(self._goal_pose)
+        new_pose = np.array([np.random.uniform(low=0.5, high=1.2)])
+        self._goal_pose = new_pose
+        return old_goal, new_pose
+
