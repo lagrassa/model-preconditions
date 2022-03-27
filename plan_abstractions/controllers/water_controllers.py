@@ -14,7 +14,7 @@ class WaterTransportController(BaseController):
 
     def __init__(self):
         super().__init__()
-        self._kp = 1
+        self._kp = 2
         self._end_buffer = 5
 
     def _plan(self, curr_x, goal_x, total_horizon=None):

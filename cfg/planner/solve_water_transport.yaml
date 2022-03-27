@@ -59,7 +59,7 @@ skills:
 planner:
   type: MRAStar # MCTS, AStar
   timeout: 300
-  max_search_depth: 5 #doesn't do anything
+  max_search_depth: 50 #doesn't do anything
   MRAStar:
     #ablation_type: anchor_only #anchor_only, comment out for none
     T_plan_max: 1
@@ -67,6 +67,6 @@ planner:
     eps: 5
     num_models: 1
     wm: [10,1]
-    n_params_per_skill: 5
+    n_params_per_skill: 10
     use_gt_effects: False
     use_multiple_models : True

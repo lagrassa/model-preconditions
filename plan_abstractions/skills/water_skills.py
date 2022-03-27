@@ -30,7 +30,7 @@ class WaterTransport1D(Skill):
     def _gen_random_parameters(self, env, state):
         while True:
             #random_dist = np.random.uniform(low=0.1, high=0.2)
-            random_dist = np.random.uniform(low=0.05, high=0.1)
+            random_dist = np.random.uniform(low=0.05, high=0.4)
             curr_state = state[0]
             yield np.array([curr_state + random_dist])
 

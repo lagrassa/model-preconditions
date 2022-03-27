@@ -25,6 +25,7 @@ class MoveWater(BaseTask):
         self._position_tol = cfg["goal"]["position_tol"]
         self._same_tol = 0.01
         self._goal_pose = cfg["goal"]["pose"]
+        self._goal_pose_ranges = cfg["goal"]["goal_pose_ranges"]
         self._setup_callbacks = [] # already in env self.add_real_drawer_to_env_cb]
 
 
@@ -49,7 +50,7 @@ class MoveWater(BaseTask):
 
     def resample_goal(self, env=None):
         old_goal = np.copy(self._goal_pose)
-        new_pose = np.array([np.random.uniform(low=0.5, high=1.2)])
+        new_pose = np.array([np.random.uniform(low=self._goal_pose_ranges["low"], high=self._goal_pose_ranges["high"])])
         self._goal_pose = new_pose
         return old_goal, new_pose
 
