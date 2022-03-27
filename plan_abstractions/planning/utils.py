@@ -356,12 +356,16 @@ def execute_plan(env, plan_to_execute, skills, task, T_plan_max, T_exec_max, set
                 env.set_skill_params(env_idx, parameter_matrix[env_idx, :])
         skill_exec_data = skill.execute(env, curr_states, parameter_matrix,
                                     T_plan_max=T_plan_max, T_exec_max=T_exec_max, set_state=False)
+
         # We do not need to save settled states for now.
         del skill_exec_data['initial_settled_states']
         plan_exec_data['skill_exec_data'].append(skill_exec_data)
     
     for env_idx, state in enumerate([env.get_sem_state()]):
         plan_exec_data['reached_goal'][env_idx] = task.is_goal_state(state)
+        if not task.is_goal_state(state):
+            import ipdb; ipdb.set_trace()
+            task.is_goal_state(state)
 
     return plan_exec_data
 

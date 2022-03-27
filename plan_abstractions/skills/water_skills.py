@@ -31,7 +31,8 @@ class WaterTransport1D(Skill):
         while True:
             #random_dist = np.random.uniform(low=0.1, high=0.2)
             random_dist = np.random.uniform(low=0.05, high=0.1)
-            yield np.array([random_dist])
+            curr_state = state[0]
+            yield np.array([curr_state + random_dist])
 
     def _gen_relation_centric_parameters(self, env, state):
         # Should be irrelevant, raise an error if sampled
@@ -49,7 +50,7 @@ class WaterTransport1D(Skill):
         controllers = []
         for env_idx, initial_state in enumerate(initial_states):
             controller = WaterTransportController()
-            goal_x = initial_state[0] + parameters[0]
+            goal_x = parameters[0]
             info_plan = controller.plan(curr_x = initial_state[0], goal_x = goal_x, total_horizon = total_horizon)
             controllers.append(controller)
             info_plans.append(info_plan)
