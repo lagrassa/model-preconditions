@@ -1,11 +1,15 @@
 env: WaterEnv
 original_cwd: ""
 
-n_init_states: 50
-n_parameters: 5
+n_init_states: 5
+n_parameters: 2
 # B/c there are many params per init state, a low n_max_exec + shuffle means we can get a higher init_state to param ratio
 shuffle: True
 n_max_execs: 1000 # use -1 to disable this cap.
+
+save_cfg:
+    save_video_dir: /home/lagrassa/plan_abstractions/test_videos
+    img_size: 360
 
 skill_cfg:
     param_sampling_probabilities:

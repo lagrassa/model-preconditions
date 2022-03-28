@@ -39,7 +39,7 @@ planner_results_root_dir: /tmp/plan_stat_results
 
 
 skills:
-  WaterTransport1D:
+  WaterTransport2D:
     use: True
     cache_dir: /tmp
     param_sampling_probabilities:
@@ -54,7 +54,7 @@ skills:
         sem_cfg:
           type: RigidModel #DrawerAndRobot #SEMSimpleFreeSpace # SEMMLP
           env: WaterEnv #actually correct
-          dim_state: 7
+          dim_state: 13
           pillar_state_convert: False
         deviation_cfg:
           use_deviation_model: 0

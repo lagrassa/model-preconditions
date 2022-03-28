@@ -1,11 +1,13 @@
 from pathlib import Path
 import numpy as np
 import copy
+import os
 import logging
 from collections import OrderedDict
 
 from softgym.registered_env import env_arg_dict, SOFTGYM_ENVS
 from softgym.utils.normalized_env import normalize
+from softgym.utils.visualization import save_numpy_as_gif
 from autolab_core import YamlConfig
 
 from .base_env import BaseEnv
@@ -21,7 +23,7 @@ from ..utils import yaw_from_quat, yaw_from_np_quat, get_rod_rel_goal_RigidTrans
 class WaterEnv(BaseEnv):
     def __init__(self, cfg, setup_callbacks=[], for_mde_training=False, baseboard = True):
         super().__init__(cfg, for_mde_training=for_mde_training, is_ig_env=False)
-        softgym_env_name = "PassWater"
+        softgym_env_name = "PourWater"
         env_kwargs = env_arg_dict[softgym_env_name]
 
         # Generate and save the initial states for running this environment for the first time
@@ -32,11 +34,13 @@ class WaterEnv(BaseEnv):
         env_kwargs['headless'] = 1#False
         self._n_envs=1
         self._env_idxs=[0]
+        self._save_cfg = cfg["save_cfg"]
         self.dt = 0.5 #alex fix this
 
         if not env_kwargs['use_cached_states']:
             print('Waiting to generate environment variations. May take 1 minute for each variation...')
         self._scene = normalize(SOFTGYM_ENVS[softgym_env_name](**env_kwargs))
+        self.frames = [self._scene.get_image(self._save_cfg["img_size"],self._save_cfg["img_size"])]
         self.reset()
 
 
@@ -62,7 +66,8 @@ class WaterEnv(BaseEnv):
 
     def reset(self, n_steps=10):
         self._scene.reset()
-        self.save_action(np.array([0]))
+        null_action = np.array([0, 0, 0])
+        self.save_action(null_action)
         for i in range(n_steps):
             self.step()
 
@@ -70,10 +75,16 @@ class WaterEnv(BaseEnv):
         self._saved_action = action
 
     def step(self):
-        self._saved_data = self._scene.step(self._saved_action, record_continuous_video=True, img_size=720)
-        assert not isinstance(self._saved_data[0][0][0], np.ndarray)
+        self._saved_data = self._scene.step(self._saved_action, record_continuous_video=True, img_size=self._save_cfg["img_size"])
+        _, _, _, info = self._saved_data
+        self.frames.extend(info['flex_env_recorded_frames'])
         return np.ones((self.n_envs,))
-        
+
+    def save_video(self):
+        save_name = os.path.join(self._save_cfg["save_video_dir"], str(round(np.random.random(),8)) + '.gif')
+        save_numpy_as_gif(np.array(self.frames), save_name)
+        print('Video generated and save to {}'.format(save_name))
+
 
 
     def generate_init_states(self, cfg, min_samples=10, max_samples=1000, init_state_flag=None,
@@ -99,6 +110,8 @@ class WaterEnv(BaseEnv):
 if __name__ == "__main__":
     cfg = YamlConfig("cfg/envs/water_env.yaml")
     env = WaterEnv(cfg)
-    env.save_action(np.array([0.01]))
-    env.step()
-    state = env.get_sem_state(should_reset_to_viewable=False)
+    env.save_action(np.array([0.0,0.05 , 0]))
+    for i in range(50):
+        env.step()
+        print(env.get_sem_state().round(2))
+    env.save_video()

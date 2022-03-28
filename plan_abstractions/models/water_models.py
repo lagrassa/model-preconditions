@@ -17,8 +17,7 @@ class RigidModel:
 
     def predict(self, state, action, unnormalized=False):
         new_state = state.copy()
-        new_x = action.item()
-        new_state[0] = new_x
+        new_state[0:2] = action.copy()
         return new_state
 
 

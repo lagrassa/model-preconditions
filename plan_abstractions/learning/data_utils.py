@@ -547,7 +547,7 @@ def make_deviation_datalists(cfg, feature_type=False, plot=0, shuffle=True, grap
     Note: feature_type is kept for compatibility but should not be used if state_and_param_to_features is not None
     """
     from ..envs import FrankaRodEnv, FrankaDrawerEnv, WaterEnv
-    from ..skills import FreeSpaceMoveToGroundFranka, OpenDrawer, LiftAndPlace, LiftAndDrop, Pick, WaterTransport1D
+    from ..skills import FreeSpaceMoveToGroundFranka, OpenDrawer, LiftAndPlace, LiftAndDrop, Pick, WaterTransport2D
     if feature_type and state_and_param_to_features is None:
         state_and_param_to_features = feature_type_to_state_and_param_to_features_fn(feature_type)
     states_and_parameters_train_all_skills = []

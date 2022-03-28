@@ -7,7 +7,7 @@ import quaternion
 
 from isaacgym_utils.math_utils import np_to_quat, transform_to_RigidTransform, np_to_transform
 from .base_task import BaseTask
-from ..skills import WaterTransport1D
+from ..skills import WaterTransport2D
 
 from ..utils.utils import pretty_print_state_with_params, pretty_print_array, min_distance_between_angles
 try:
@@ -41,16 +41,18 @@ class MoveWater(BaseTask):
 
     def is_goal_state(self, vector_state):
         if self.distance_to_goal_state(vector_state) < self._position_tol:
-            if vector_state[-1] < self._water_out_tol:
+            if (1-vector_state[-1]) < self._water_out_tol:
                 return True
         return False
 
     def distance_to_goal_state(self, vector_state):
-        return np.linalg.norm(vector_state[0]-self._goal_pose)
+        #return np.linalg.norm(vector_state[0]-self._goal_pose)
+        dist = np.linalg.norm(vector_state[0:2]-self._goal_pose)
+        return dist
 
     def resample_goal(self, env=None):
         old_goal = np.copy(self._goal_pose)
-        new_pose = np.array([np.random.uniform(low=self._goal_pose_ranges["low"], high=self._goal_pose_ranges["high"])])
+        new_pose = np.random.uniform(size=(2,), low=self._goal_pose_ranges["low"], high=self._goal_pose_ranges["high"])
         self._goal_pose = new_pose
         return old_goal, new_pose
 

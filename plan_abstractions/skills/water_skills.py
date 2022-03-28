@@ -4,11 +4,11 @@ from plan_abstractions.skills.skills import Skill
 from plan_abstractions.controllers.water_controllers import WaterTransportController
 
 
-class WaterTransport1D(Skill):
+class WaterTransport2D(Skill):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.param_shape = (1,)
+        self.param_shape = (2,)
         self._terminate_on_timeout=True
         self.total_horizon = 10
         self._position_tol = 0.005
@@ -30,9 +30,11 @@ class WaterTransport1D(Skill):
     def _gen_random_parameters(self, env, state):
         while True:
             #random_dist = np.random.uniform(low=0.1, high=0.2)
-            random_dist = np.random.uniform(low=0.05, high=0.4)
-            curr_state = state[0]
-            yield np.array([curr_state + random_dist])
+            random_dist_x = np.random.uniform(low=0.05, high=0.4)
+            random_dist_z = np.random.uniform(low=0.01, high=0.03)
+            random_dist = np.array([random_dist_x, random_dist_z])
+            curr_state = state[0:2]
+            yield curr_state + random_dist
 
     def _gen_relation_centric_parameters(self, env, state):
         # Should be irrelevant, raise an error if sampled
@@ -50,15 +52,15 @@ class WaterTransport1D(Skill):
         controllers = []
         for env_idx, initial_state in enumerate(initial_states):
             controller = WaterTransportController()
-            goal_x = parameters[env_idx][0]
-            info_plan = controller.plan(curr_x = initial_state[0], goal_x = goal_x, total_horizon = total_horizon)
+            goal_pose = parameters[env_idx]
+            info_plan = controller.plan(curr_pose = initial_state[0:2], goal_pose = goal_pose, total_horizon = total_horizon)
             controllers.append(controller)
             info_plans.append(info_plan)
         return controllers, info_plans
 
     def check_termination_condition(self, internal_state, parameters, t, controller=None, env_idx=None):
         timeout = False
-        if controller is not None and abs(internal_state[0] - controller.goal_x) <  self._position_tol:
+        if controller is not None and np.linalg.norm(internal_state[0:2] - controller.goal_pose) <  self._position_tol:
             return True
         if self._terminate_on_timeout and controller is not None:
             timeout = t >= controller.horizon
