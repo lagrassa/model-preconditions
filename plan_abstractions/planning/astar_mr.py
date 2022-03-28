@@ -139,7 +139,7 @@ class MRAStar(Planner):
                 effects, _ = self._compute_effects(skill_idx, node, params, param_types)
 
             for i, param in enumerate(params):
-                if not isinstance(effects["end_states"][0], np.ndarray) and effects["end_states"][i] == None:
+                if not isinstance(effects["end_states"][i], np.ndarray) and effects["end_states"][i] == None:
                     print("No valid models for this set of states and params")
                     continue
                 action = Action(skill_idx, param,
@@ -148,14 +148,17 @@ class MRAStar(Planner):
                                 effects["T_exec"][i],
                                 effects["info_plan"][i]
                                 )
-                child = Node(
-                    effects["end_states"][i],
-                    self._skill_idxs,
-                    parent=node,
-                    action_in=action,
-                    depth=node._depth + 1,
-                    debug_id=self._root_node.num_nodes + 1
-                )
+                try:
+                    child = Node(
+                        effects["end_states"][i],
+                        self._skill_idxs,
+                        parent=node,
+                        action_in=action,
+                        depth=node._depth + 1,
+                        debug_id=self._root_node.num_nodes + 1
+                    )
+                except:
+                    import ipdb; ipdb.set_trace()
                 children.append(child)
                 node.add_children(children)
                 self._root_node.num_nodes += 1

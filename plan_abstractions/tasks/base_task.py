@@ -78,7 +78,7 @@ class BaseTask(ABC):
         pass
     
     def pretty_print_with_reference_to_pillar_state(self, pillar_state):
-        pass
+        return ""
 
     def generate_parameters(self, skill, env, state, num_parameters=1, return_param_types=False, debug=False, 
                             valid_success_per_param_type=None, check_valid_goal_state=True):

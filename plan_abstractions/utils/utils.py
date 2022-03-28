@@ -733,11 +733,24 @@ def get_formatted_time():
     return datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 
 def dists_and_actions_from_states_and_parameters(states_and_parameters, state_ndims=None, only_dists=True):
+    import ipdb; ipdb.set_trace()
     assert state_ndims is not None
     parameters = states_and_parameters[:, state_ndims:]
     transformed_features = augment_with_dists(states_and_parameters, only_dists=only_dists)
     dists_and_actions = np.hstack([transformed_features, parameters])
     return dists_and_actions
+
+def extract_first_and_last(states_and_parameters, state_ndims=7, only_dists=True):
+    """
+    Pretty special purpose to the water world where the first and last are the most important. eventually this
+    should be learned
+    """
+    first_only = states_and_parameters[:,0].reshape(-1,1)
+    last_only = states_and_parameters[:,state_ndims-1].reshape(-1,1)
+    parameters = states_and_parameters[:, state_ndims:]
+    state_transformed_and_actions = np.hstack([first_only, last_only, parameters])
+    return state_transformed_and_actions
+
 
 def combine_effects(effects_list):
     combined_effects = {}

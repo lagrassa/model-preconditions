@@ -32,7 +32,11 @@ class TransitionModel(ABC):
     def model_precondition_satisfied(self, state, parameters):
         if not self._use_deviation_model:
             return True
-        predicted_deviation = self._deviation_wrapper.predict_from_pillar_state(state, parameters)
+        if isinstance(state, np.ndarray):
+            predicted_deviation = self._deviation_wrapper.predict_from_np(state, parameters)
+        else:
+            #assume is pillar_state
+            predicted_deviation = self._deviation_wrapper.predict_from_pillar_state(state, parameters)
         res = predicted_deviation < self._acceptable_deviation
         debug_name = self._model_cfg["debug_name"]
         if not res:

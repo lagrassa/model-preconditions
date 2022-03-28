@@ -8,6 +8,7 @@ from autolab_core import YamlConfig
 from plan_abstractions.learning.data_utils import make_deviation_datalists, eval_model, train_and_fit_model, \
     remove_outliers
 from plan_abstractions.models.mdes import *
+from plan_abstractions.utils import extract_first_and_last
 
 import logging
 import os
@@ -23,18 +24,15 @@ logger = logging.getLogger(__name__)
 logger.setLevel('INFO')
 def make_vector_datas(cfg):
     data_root = cfg["data"]["root"]
-    exp_name = cfg["data"]["tags"][0]
-    data_dir = os.path.join(data_root, exp_name)
-    init_state_data = np.load(os.path.join(data_dir, "init_states.npy"))
-    end_state_data = np.load(os.path.join(data_dir, "end_states.npy"))
-    param_data = np.load(os.path.join(data_dir, "param_data.npy"))
-    processed_datas = {}
-    processed_datas['init_states'] = init_state_data
-    processed_datas['end_states'] =  end_state_data
-    processed_datas['parameters']  = param_data
-    return processed_datas
+    folder_name = cfg["data"]["tags"][0]
+    data_dir = os.path.join(data_root, folder_name)
+    for exp_name in os.listdir(data_dir):
+        data =  np.load(os.path.join(data_dir, exp_name), allow_pickle=True).item()
+        data['parameters']  = data["params"]
+    return data 
+
 def main():
-    cfg = YamlConfig("cfg/train/mde_train/learned_linear.yaml")
+    cfg = YamlConfig("cfg/train/mde_train/rigid_12.yaml")
     log = logging.getLogger(__name__)
     cfg['original_cwd'] = os.getcwd() #hydra.utils.get_original_cwd()
     set_seed(cfg['seed'])
@@ -49,7 +47,14 @@ def main():
         dataset_data = np.load(cfg["dataset_file_cache"], allow_pickle=True).item()
     else:
         processed_datas = make_vector_datas(cfg)
-        dataset_data = make_deviation_datalists(cfg, feature_type=cfg.get('feature_type', 'dists_and_actions_only'), shuffle=cfg.get('train', True),
+        import ipdb; ipdb.set_trace()
+        if 'feature_type' not in cfg.keys() and 'state_and_param_to_features' not in cfg['shared_info'].keys(): #Backwards compat. 
+            feature_type = "dists_and_action_only"
+            state_and_param_to_features=None
+        else:
+            state_and_param_to_features = eval(cfg["shared_info"]["state_and_param_to_features"])
+            feature_type=False
+        dataset_data = make_deviation_datalists(cfg, feature_type=feature_type,  state_and_param_to_features=state_and_param_to_features, shuffle=cfg.get('train', True),
                                                 processed_datas = processed_datas, graphs=cfg.get("graphs", False))  # shuffle=cfg.get('train', True))
         if "dataset_save_loc" in cfg.keys():
             np.save(cfg["dataset_save_loc"], dataset_data)

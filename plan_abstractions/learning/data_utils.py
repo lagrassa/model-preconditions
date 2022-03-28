@@ -106,7 +106,7 @@ def remove_outliers(dataset, high_deviation=10.5):
 
 def extract_model_deviations_from_processed_datas(processed_datas, skill, env_cls, sem_state_obj_names, plot,
                                                   use_sim_model=False, graph_transitions=False, save_all=False,
-                                                  do_data_aug=False, feature_type=True, data_aug_cfg=None, env=None,
+                                                  do_data_aug=False, state_and_param_to_features=True, data_aug_cfg=None, env=None,
                                                   shuffle=True):
     if "Rod" in env_cls.__name__ or "Drawer" in env_cls.__name__:
         return rod_extract_model_deviations_from_processed_datas(processed_datas, skill, env_cls, sem_state_obj_names, plot, use_sim_model, graph_transitions, save_all, do_data_aug, feature_type, data_aug_cfg, env, shuffle)
@@ -120,18 +120,18 @@ def extract_model_deviations_from_processed_datas(processed_datas, skill, env_cl
         deviation = np.linalg.norm(pred_effects-end_state)
         deviations.append(deviation)
     states_and_parameters = np.hstack([init_states, parameters])
+    features = state_and_param_to_features(states_and_parameters)
     order = np.arange(len(deviations))
     random_order = np.random.permutation(order)
     deviations = np.array(deviations)
     if shuffle:
         order = random_order
-    return deviations[order].reshape(-1, 1), states_and_parameters[order]
-    return pred_effects
+    return deviations[order].reshape(-1, 1), features[order]
 
 
 def rod_extract_model_deviations_from_processed_datas(processed_datas, skill, env_cls, sem_state_obj_names, plot,
                                                   use_sim_model=False, graph_transitions=False, save_all=False,
-                                                  do_data_aug=False, feature_type=True, data_aug_cfg=None, env=None, shuffle=True):
+                                                  do_data_aug=False, state_and_param_to_features=True, data_aug_cfg=None, env=None, shuffle=True):
     if use_sim_model:
         assert env is not None
     deviations = []
@@ -261,18 +261,7 @@ def rod_extract_model_deviations_from_processed_datas(processed_datas, skill, en
     order = np.arange(len(deviations))
     random_order = np.random.permutation(order)
     print("Total dataset size", deviations.shape)
-    if feature_type == "dists_and_actions_only":
-        states_and_parameters = dists_and_actions_from_states_and_parameters(states_and_parameters,
-                                                                             only_dists=True,
-                                                                             state_ndims=end_states[0].shape[0])
-    elif feature_type == "pose_only":
-        pass
-    elif feature_type == "pose_and_dists_and_actions":
-        states_and_parameters = dists_and_actions_from_states_and_parameters(states_and_parameters,
-                                                                             only_dists=False,
-                                                                             state_ndims=end_states[0].shape[0])
-    else:
-        raise ValueError(f"Invalid feature type: {feature_type}")
+    states_and_parameters = state_and_params_to_features(states_and_parameters)
     plot_min_dist = False
     if plot_min_dist:
         assert feature_type == "dists_and_actions_only"
@@ -537,10 +526,30 @@ def get_min_dist(states_and_params):
     min_dist = np.min(np.vstack([rod0_dist, rod1_dist]), axis=0)
     return min_dist
 
+def feature_type_to_state_and_param_to_features_fn(feature_type):
+    if feature_type == "dists_and_actions_only":
+        fn = lambda states_and_parameters : dists_and_actions_from_states_and_parameters(states_and_parameters,
+                                                                             only_dists=True,
+                                                                             state_ndims=end_states[0].shape[0])
+    elif feature_type == "pose_only":
+        lambda states_and_parameters : states_and_parameters
+    elif feature_type == "pose_and_dists_and_actions":
+        states_and_parameters = lambda states_and_parameters: dists_and_actions_from_states_and_parameters(states_and_parameters,
+                                                                             only_dists=False,
+                                                                             state_ndims=end_states[0].shape[0])
+    else:
+        ValueError(f"Unknown feature type: {feature_type}")
+    return fn
 
-def make_deviation_datalists(cfg, feature_type=False, plot=0, shuffle=True, graphs=False, setup_callbacks=[], processed_datas=None):
+
+def make_deviation_datalists(cfg, feature_type=False, plot=0, shuffle=True, graphs=False, setup_callbacks=[], processed_datas=None, state_and_param_to_features=None):
+    """
+    Note: feature_type is kept for compatibility but should not be used if state_and_param_to_features is not None
+    """
     from ..envs import FrankaRodEnv, FrankaDrawerEnv, WaterEnv
     from ..skills import FreeSpaceMoveToGroundFranka, OpenDrawer, LiftAndPlace, LiftAndDrop, Pick, WaterTransport1D
+    if feature_type and state_and_param_to_features is None:
+        state_and_param_to_features = feature_type_to_state_and_param_to_features_fn(feature_type)
     states_and_parameters_train_all_skills = []
     states_and_parameters_val_all_skills = []
     deviations_train_all_skills = []
@@ -573,7 +582,7 @@ def make_deviation_datalists(cfg, feature_type=False, plot=0, shuffle=True, grap
             env = None
         states_and_parameters_this_skill, deviations_this_skill = get_deviations_from_data(cfg, "root", "tags", env_cls, skill,
                                                                      skill_cfg, skill_cls, plot, do_data_aug=True,
-                                                                     feature_type=feature_type,
+                                                                     state_and_param_to_features=state_and_param_to_features,
                                                                      shuffle=shuffle, graphs=graphs,
                                                                      use_sim_model=use_sim_model,
                                                                      processed_datas=processed_datas,
@@ -581,7 +590,7 @@ def make_deviation_datalists(cfg, feature_type=False, plot=0, shuffle=True, grap
         states_and_parameters_val_this_skill, deviations_val_this_skill = get_deviations_from_data(cfg, "val_root", "val_tags", env_cls, skill,
                                                                              skill_cfg, skill_cls, plot, shuffle=shuffle,
                                                                              save_all=True, graphs=graphs,
-                                                                             feature_type=feature_type,
+                                                                             state_and_param_to_features=state_and_param_to_features,
                                                                              processed_datas=processed_datas,
                                                                              use_sim_model=use_sim_model, env=env)
         states_and_parameters_train_all_skills.append(states_and_parameters_this_skill)
@@ -604,7 +613,7 @@ def make_deviation_datalists(cfg, feature_type=False, plot=0, shuffle=True, grap
 
 
 def get_deviations_from_data(cfg, train_data_key, data_tags_key, env_cls, skill, skill_cfg, skill_cls, plot,
-                             save_all=False, feature_type=False, do_data_aug=False, use_sim_model=False, sem_state_obj_names=None,
+                             save_all=False, state_and_param_to_features=False, do_data_aug=False, use_sim_model=False, sem_state_obj_names=None,
                              graphs=False, env=None, shuffle=False, processed_datas=None):
     if processed_datas is None:
         datas = get_datas(skill_cfg["data"], data_root_key=train_data_key, data_tags_key=data_tags_key)
@@ -633,7 +642,7 @@ def get_deviations_from_data(cfg, train_data_key, data_tags_key, env_cls, skill,
                                                                                           do_data_aug=do_data_aug,
                                                                                           data_aug_cfg = cfg['data_aug'],
                                                                                           # 10,#2, #20,
-                                                                                          feature_type=feature_type,
+                                                                                          state_and_param_to_features=state_and_param_to_features,
                                                                                           use_sim_model=use_sim_model,
                                                                                           shuffle=shuffle,
                                                                                           env=env)

@@ -164,7 +164,7 @@ class Skill(ABC):
 
         """
         effects_all = {}
-        effects_all["end_states"] = np.array([None]*len(states), dtype=object)
+        effects_all["end_states"] = [None for _ in states] 
         effects_all["costs"] = np.array([0]*len(states), dtype=object)
         effects_all["T_exec"] = np.array([0]*len(states), dtype=object)
         effects_all["info_plan"] = np.array([{}]*len(states), dtype=object)
@@ -198,15 +198,12 @@ class Skill(ABC):
             if debug:
                 pb_env.show_effects(effects["end_states"])
             #add effects with that mask
-            effects_all["end_states"] = []
-            for i, use_idx in enumerate(idx_mask):
-                if use_idx:
-                    effects_all["end_states"].append(effects["end_states"][i])
+            _set_end_states_given_mask(effects_all, effects, idx_mask)
             effects_all["costs"][idx_mask] = effects["costs"]
             if "T_exec" in effects.keys():
-                effects_all["T_exec"][idx_mask] = effects["T_exec"]
+                effects_all["T_exec"][idx_mask] = effects["T_exec"][effect_idx]
             if "info_plan" in effects.keys():
-                effects_all["info_plan"][idx_mask] = [plan_dict for plan_dict in effects["info_plan"]]
+                effects_all["info_plan"][idx_mask] = [plan_dict for plan_dict in effects["info_plan"][effect_idx]]
         return effects_all
 
 
@@ -453,7 +450,6 @@ class Skill(ABC):
 
                 if t == 0 and hasattr(env, 'set_skill_params'):
                     env.set_skill_params(env_idx, parameters[env_idx])
-
                 pillar_state = env.get_sem_state(env_idx)
                 #internal_state = self.pillar_state_to_internal_state(pillar_state)
                 internal_state = pillar_state
@@ -1334,3 +1330,16 @@ class LQRSweep2Objects(FreeSpaceLQRMove):
             controllers.append(controller)
             info_plans.append(info_plan)
         return controllers, info_plans
+
+def _set_end_states_given_mask(effects_all, effects, idx_mask):
+    """
+    Util function: modifier. Effects can be none of model has no effects (ex. model precond not satisfied)
+    """
+    effect_idx = 0
+    for i, use_idx in enumerate(idx_mask):
+        if use_idx:
+            if effects is not None:
+                effects_all["end_states"][i] = effects["end_states"][effect_idx]
+            else:
+                effects_all["end_states"][i] = None
+            effect_idx += 1

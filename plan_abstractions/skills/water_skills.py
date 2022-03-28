@@ -50,7 +50,7 @@ class WaterTransport1D(Skill):
         controllers = []
         for env_idx, initial_state in enumerate(initial_states):
             controller = WaterTransportController()
-            goal_x = parameters[0]
+            goal_x = parameters[env_idx][0]
             info_plan = controller.plan(curr_x = initial_state[0], goal_x = goal_x, total_horizon = total_horizon)
             controllers.append(controller)
             info_plans.append(info_plan)

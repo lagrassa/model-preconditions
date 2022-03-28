@@ -22,8 +22,21 @@ from plan_abstractions.utils.planner_utils import planner_graph_to_dot
 
 logger = logging.getLogger(__name__)
 
+def get_and_create_transition_fn(cfg):
+        save_transitions = cfg["save_transition_cfg"].get("save_transitions", True)
+        transition_data_dirpath = cfg["save_transition_cfg"]["dirpath"]
+        transition_data_fn = None
+        if save_transitions:
+            if not os.path.isdir(transition_data_dirpath):
+                os.mkdir(transition_data_dirpath)
+            for i in range(2000):
+                fn = os.path.join(transition_data_dirpath, f"transition_data_{i}.npy")
+                if not os.path.exists(fn):
+                    transition_data_fn = fn
+                    return transition_data_fn
 
-def run_planner_on_task(cfg, env, skills, task, save_dir, init_state, eval_env = None):
+
+def run_planner_on_task(cfg, env, skills, task, save_dir, init_state, eval_env = None,current_transition_records=None, transition_data_fn=None):
     logger.info('Running planner...')
 
     planner_type = cfg['planner']['type']
@@ -68,7 +81,6 @@ def run_planner_on_task(cfg, env, skills, task, save_dir, init_state, eval_env =
 
     logger.info('Saving plan...')
     planner.save_plan(plan, save_dir / 'plan.pkl')
-
     if found_plan:
         plan_to_execute = plan
         distance_to_goal_state = task.evaluate(plan[-1].pillar_state)
@@ -111,6 +123,7 @@ def run_planner_on_task(cfg, env, skills, task, save_dir, init_state, eval_env =
         print("Reached goal",plan_exec_data['reached_goal'])
         logger.info(f"These envs reached goals: {np.argwhere(plan_exec_data['reached_goal']).flatten()}")
         logger.info(f"Num model evals: {planner.num_model_evals}")
+        update_transition_records(plan_exec_data, current_transition_records, transition_data_fn)
         with open(save_dir / 'plan_exec_data.pkl', 'wb') as f:
             dump(plan_exec_data, f)
         
@@ -137,6 +150,23 @@ def run_planner_on_task(cfg, env, skills, task, save_dir, init_state, eval_env =
     return info_dict
 
 
+def update_transition_records(plan_exec_data, current_transition_records, transition_data_fn):
+    skill_exec_data_list = plan_exec_data['skill_exec_data']
+    #assuming just 1 env idx 
+    data_item_names = current_transition_records.keys()
+    env_idx = 0
+    for skill_exec_data_point in skill_exec_data_list:
+        if current_transition_records['init_states'] is None:
+            #Need to initialize
+            for name in data_item_names:
+                current_transition_records[name] = skill_exec_data_point[name][env_idx]
+        else:
+            #Can also pre-allocate, but this is nice because this process often crashes/needs to be interrupted
+            for name in data_item_names:
+                current_transition_records[name] = np.vstack([current_transition_records[name],skill_exec_data_point[name][env_idx]])
+    np.save(transition_data_fn, current_transition_records)
+
+
 # @hydra.main(config_path='../cfg/planner', config_name='mcts_push_rods_lqr.yaml')
 @hydra.main(config_path='../cfg/planner', config_name='solve_push_one_rod_franka_4_skills.yaml')
 def main(cfg):
@@ -153,6 +183,7 @@ def main(cfg):
     total_goals_to_reach_per_iter = 1
     num_initial_states_to_test = cfg['n_init_states']
     total_goals_to_reach = num_initial_states_to_test * total_goals_to_reach_per_iter
+    current_transition_records = {'init_states':None,'params':None,'end_states':None}
 
 
     logger.info('Making env, task, and skills...')
@@ -202,13 +233,19 @@ def main(cfg):
     num_model_evals_per_sec_total= []
     plan_results_dirname = os.path.join(cfg["data_root_dir"], "plan_results/")
     plan_results_filename = make_save_dir_and_get_plan_results_filename(plan_results_dirname)
+    if "save_transition_cfg" in cfg.keys():
+        transition_data_fn = get_and_create_transition_fn(cfg)
+        save_transitions = cfg["save_transition_cfg"].get("save_transitions", True)
+    else:
+        save_transitions = False
+        transition_data_fn=None
     for init_state in tqdm(initial_state_generator, total=cfg['n_init_states'], desc='Init states'):
         ith_goal_save_dir = save_dir / f'try_{num_goals_tested:03}'
         ith_goal_save_dir.mkdir()
         if real_robot:
-            plan_results = run_planner_on_task(cfg, plan_env, skills, task, ith_goal_save_dir, init_state, eval_env = real_env)
+            plan_results = run_planner_on_task(cfg, plan_env, skills, task, ith_goal_save_dir, init_state, eval_env = real_env, current_transition_records=current_transition_records, transition_data_fn=transition_data_fn)
         else:
-            plan_results = run_planner_on_task(cfg, env, skills, task, ith_goal_save_dir, init_state)
+            plan_results = run_planner_on_task(cfg, env, skills, task, ith_goal_save_dir, init_state, current_transition_records=current_transition_records, transition_data_fn=transition_data_fn)
         plan_results_list.append(plan_results.copy())
         if plan_results['plan_found']:
             planner_goals_reached += 1
@@ -219,13 +256,9 @@ def main(cfg):
             elapsed_times.append(plan_results["elapsed_time"])
             print("num model evals", num_model_evals_per_sec_total)
             print("elapsed times", elapsed_times)
-
-        logging.info(f"Plan debug: \n"
-                     f"distance to goal state: {plan_results['distance_to_goal_state']:.3f}\n"
-                     f"            debug info:\n {plan_results['debug_plan_str']}"
-                     )
         for plan_result_to_save in plan_results_list:
-            plan_result_to_save["planner"] = None
+            if 'planner' in plan_result_to_save.keys():
+                del plan_result_to_save["planner"]
         np.save(plan_results_filename, plan_results_list)
 
         old_goal, new_goal = task.resample_goal(env=env)

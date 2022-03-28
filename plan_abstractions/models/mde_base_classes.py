@@ -5,24 +5,29 @@ from sklearn.metrics import make_scorer
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.preprocessing import StandardScaler
 
-from plan_abstractions.utils import dists_and_actions_from_states_and_parameters, augment_with_dists
+from plan_abstractions.utils import dists_and_actions_from_states_and_parameters, augment_with_dists, extract_first_and_last
 
 
 class DeviationModel():
     def __init__(self, cfg):
-        from ..envs import FrankaRodEnv, FrankaDrawerEnv
+        from ..envs import FrankaRodEnv, FrankaDrawerEnv, WaterEnv
         if 'env' in cfg.keys():
             self._env_cls = eval(cfg["env"])
         if 'data' in cfg.keys():
             self._sem_state_obj_names = cfg["data"]["sem_state_obj_names"]  # TODO get from wandb file
         if 'sem_state_obj_names' in cfg.keys():
             self._sem_state_obj_names = cfg["sem_state_obj_names"]
+        if 'state_and_param_to_features' in cfg.keys():
+            state_and_param_to_features = eval(cfg['state_and_param_to_features'])
+        else:
+            state_and_param_to_features = dists_and_actions_from_states_and_parameters
         self._is_graph_model = False
         self._train_cfg = cfg.get("train_cfg", None)
         self._c1 = cfg.get('c1',3)
         self._c2 = cfg.get('c2', 1)
         self._deviation_scaler = None
         self._state_and_parameter_scaler = None
+        self._state_and_param_to_features = state_and_param_to_features 
 
     def evaluate_loss(self, y, y_hat):
         if len(y.shape) == 1:
@@ -55,7 +60,7 @@ class DeviationModel():
         if not already_transformed_state_vector:
             assert state_ndim is not None
         if not already_transformed_state_vector:
-            state_and_parameters = dists_and_actions_from_states_and_parameters(input_state_and_parameters,state_ndims=state_ndim)
+            state_and_parameters = self._state_and_param_to_features(input_state_and_parameters,state_ndims=state_ndim)
         else:
             state_and_parameters = input_state_and_parameters
 
@@ -74,9 +79,11 @@ class DeviationModel():
     def predict_from_pillar_state(self, state, parameters):
         assert self._sem_state_obj_names is not None
         sem_state = self._env_cls.pillar_state_to_sem_state(state, self._sem_state_obj_names)
-        state_and_parameters = np.hstack([sem_state, parameters]).reshape(1, -1)
-        #print("dists", augment_with_dists(state_and_parameters, only_dists=1).round(2))
-        return self.predict(state_and_parameters, state_ndim=sem_state.shape[0]).item()
+        return self.predict_from_np(state, parameters)
+
+    def predict_from_np(self, state, parameters):
+        state_and_parameters = np.hstack([state, parameters]).reshape(1, -1)
+        return self.predict(state_and_parameters, state_ndim=state.shape[0]).item()
 
     def save_model(self, model_fn, deviation_scaler_fn, state_and_parameter_scaler_fn):
         self._save_model(model_fn)

@@ -1,0 +1,101 @@
+debug: False
+seed: 0
+tag: ${now:%Y-%m-%d-%H-%M-%S}
+upload_to_wandb: 1
+original_cwd: ""
+train: 1
+do_pr_curve: 0
+sample_complexity_test: 0
+
+mde_stats_path: /home/lagrassa/git/model-preconditions/data/mde_stats_final
+dataset_save_loc: /home/lagrassa/git/model-preconditions/data/dataset_linear.npy #helpful for sim models
+
+data:
+  mock: False
+  #root: /home/jacky/plan_abstractions/skill_data/LQRWaypointsXYZYawFranka
+  #val_root: /home/jacky/plan_abstractions/skill_data/LQRWaypointsXYZYawFranka
+  root: /home/lagrassa/plan_abstractions
+  val_root: /home/lagrassa/plan_abstractions
+  tags:
+    - mde_train_data
+  val_tags:
+    - mde_train_data
+data_aug:
+  num_noise_aug : 3000
+  num_grid_aug : 0
+  state_noise_mag: 0.04
+  action_noise_mag: 0.02 #0.05 worked well before
+
+
+shared_info:
+  c1: 3
+  c2: 1
+  use_sim_model: False
+  state_and_param_to_features: extract_first_and_last
+  sem_cfg:
+    type: RigidModel 
+    env: WaterEnv #actually correct
+    dim_state: 7
+    pillar_state_convert: False
+    model_cfg: 
+      load: False
+  train_cfg:
+    lr: 0.005 #0.005 worked well
+    max_epochs: 5000
+    N: 16
+    batch_size: 128
+    weight_decay: 1e-5 #1e-4 #0.005 worked well
+
+
+test_size: 0.25
+
+precision_save_dir : /home/lagrassa/git/plan-abstractions/data/pr_curves
+deviation_cfg:
+  env: FrankaDrawerEnv
+  type: MLPModel  #GPRModel #RFRModel #KNNRegressorModel #MLPModel #LinearRegressionModel #KNNRegressorModel
+  #run_path: iam-lab/asm/runs/zg3rgdlk
+  #run_path: iam-lab/asm/runs/27j05iqf
+  run_path: iam-lab/asm/runs/3gv5u45r
+  cache_dir: /home/lagrassa/plan_abstractions/cache
+  acceptable_deviation: 0.05 #0.08
+  c1: 5
+  c2: 1
+  sem_state_obj_names:
+    - franka:ee
+    - rod0
+    - rod1
+    - drawer
+defaults:
+  - envs: franka_env_drawer.yaml
+
+wandb:
+  init:
+    entity: iam-lab
+    project: water
+    group: alex/validation
+  saver:
+    upload: True
+
+skills:
+  WaterTransport1D:
+    low_level: False
+    env: WaterEnv # PushRodEnv, FrankaDrawerEnv
+    c1: 4
+    c2: 1
+    train:
+      lr: 0.002 #0.005 worked well
+      max_epochs: 20
+      N: 32
+      batch_size: 64
+      weight_decay: 1e-4 #0.005 worked well
+      normalization_type: 'z_normalization'    # 'none', 'z_normalization', 'min_max'? #TODO use same as dynamics model
+      z_normalization:
+        # mean_std per feature ()
+        # can only normalize values we require also maybe try min-max?
+        mean: [  0,  0,  0,  0,  0,  0,  0,  0,  0,0,0,0,  828.628,   3.886,   0.059]
+        std:  [  1,  1,  1,  1,  1,  1,  1,  1,  1,1,1,1,   22.012,   3.440,   0.004]
+      skill: OpenDrawer # the skill class name
+      state_info:
+        use_state_diff_in_end_state: True
+        # anchor_obj_name: pusher # uncomment to use relative states
+

@@ -57,6 +57,7 @@ class WaterEnv(BaseEnv):
         return None
 
     def get_sem_state(self, should_reset_to_viewable=False):
+        assert not isinstance(self._saved_data[0][0][0], np.ndarray)
         return self._saved_data[0][0]
 
     def reset(self, n_steps=10):
@@ -70,6 +71,7 @@ class WaterEnv(BaseEnv):
 
     def step(self):
         self._saved_data = self._scene.step(self._saved_action, record_continuous_video=True, img_size=720)
+        assert not isinstance(self._saved_data[0][0][0], np.ndarray)
         return np.ones((self.n_envs,))
         
 
