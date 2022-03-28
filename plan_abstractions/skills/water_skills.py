@@ -31,7 +31,7 @@ class WaterTransport2D(Skill):
         while True:
             #random_dist = np.random.uniform(low=0.1, high=0.2)
             random_dist_x = np.random.uniform(low=0.05, high=0.4)
-            random_dist_z = np.random.uniform(low=0.01, high=0.1)
+            random_dist_z = np.random.uniform(low=0.05, high=0.2)
             random_dist = np.array([random_dist_x, random_dist_z])
             curr_state = state[0:2]
             yield curr_state + random_dist

@@ -22,9 +22,9 @@ from isaacgym_utils.math_utils import set_seed
 
 logger = logging.getLogger(__name__)
 logger.setLevel('INFO')
-def make_vector_datas(cfg):
+def make_vector_datas(cfg, tag_name="tags"):
     data_root = cfg["data"]["root"]
-    folder_name = cfg["data"]["tags"][0]
+    folder_name = cfg["data"][tag_name][0]
     data_dir = os.path.join(data_root, folder_name)
     data_list = []
     for exp_name in os.listdir(data_dir):
@@ -51,8 +51,8 @@ def main():
     if "dataset_file_cache" in cfg.keys():
         dataset_data = np.load(cfg["dataset_file_cache"], allow_pickle=True).item()
     else:
-        processed_datas = make_vector_datas(cfg)
-        import ipdb; ipdb.set_trace()
+        processed_datas_train = make_vector_datas(cfg, tag_name="tags")
+        processed_datas_val = make_vector_datas(cfg, tag_name="val_tags")
         if 'feature_type' not in cfg.keys() and 'state_and_param_to_features' not in cfg['shared_info'].keys(): #Backwards compat. 
             feature_type = "dists_and_action_only"
             state_and_param_to_features=None
@@ -60,9 +60,10 @@ def main():
             state_and_param_to_features = eval(cfg["shared_info"]["state_and_param_to_features"])
             feature_type=False
         dataset_data = make_deviation_datalists(cfg, feature_type=feature_type,  state_and_param_to_features=state_and_param_to_features, shuffle=cfg.get('train', True),
-                                                processed_datas = processed_datas, graphs=cfg.get("graphs", False))  # shuffle=cfg.get('train', True))
+                                                processed_datas_train = processed_datas_train, processed_datas_val=processed_datas_val, graphs=cfg.get("graphs", False))  # shuffle=cfg.get('train', True))
         if "dataset_save_loc" in cfg.keys():
             np.save(cfg["dataset_save_loc"], dataset_data)
+    import ipdb; ipdb.set_trace()
     dataset_data = remove_outliers(dataset_data)
     states_and_parameters, deviations = dataset_data["training"]
     logger.info(f"training dataset of {len(states_and_parameters)} ")

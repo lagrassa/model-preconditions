@@ -30,6 +30,7 @@ data_aug:
 shared_info:
   c1: 3
   c2: 1
+  distance_function: xy_and_water_out
   use_sim_model: False
   state_and_param_to_features: extract_first_and_last
   sem_cfg:

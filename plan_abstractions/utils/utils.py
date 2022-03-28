@@ -368,7 +368,7 @@ def get_rod_grasps_transforms(sy_rod, sz_rod, grasp_offset=0):
 def make_save_dir_and_get_plan_results_filename(plan_results_dirname):
     if not os.path.isdir(plan_results_dirname):
         os.mkdir(plan_results_dirname)
-    for i in range(20):
+    for i in range(200):
         plan_results_filename_option = os.path.join(plan_results_dirname, f"plan_results_{i}.npy")
         if os.path.isfile(plan_results_filename_option):
             continue
@@ -733,7 +733,6 @@ def get_formatted_time():
     return datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 
 def dists_and_actions_from_states_and_parameters(states_and_parameters, state_ndims=None, only_dists=True):
-    import ipdb; ipdb.set_trace()
     assert state_ndims is not None
     parameters = states_and_parameters[:, state_ndims:]
     transformed_features = augment_with_dists(states_and_parameters, only_dists=only_dists)

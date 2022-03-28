@@ -40,7 +40,9 @@ class WaterEnv(BaseEnv):
         if not env_kwargs['use_cached_states']:
             print('Waiting to generate environment variations. May take 1 minute for each variation...')
         self._scene = normalize(SOFTGYM_ENVS[softgym_env_name](**env_kwargs))
-        self.frames = [self._scene.get_image(self._save_cfg["img_size"],self._save_cfg["img_size"])]
+        self._save_frames = self._save_cfg["save_frames"]
+        if self._save_frames:
+            self.frames = [self._scene.get_image(self._save_cfg["img_size"],self._save_cfg["img_size"])]
         self.reset()
 
 
@@ -65,10 +67,11 @@ class WaterEnv(BaseEnv):
         state_vector = self._saved_data[0][0]
         return state_vector[np.array([0,1,-1])]
 
-    def reset(self, n_steps=10):
+    def reset(self, n_steps=2):
         self._scene.reset()
         null_action = np.array([0, 0, 0])
         self.save_action(null_action)
+        self.frames = []
         for i in range(n_steps):
             self.step()
 
@@ -78,7 +81,8 @@ class WaterEnv(BaseEnv):
     def step(self):
         self._saved_data = self._scene.step(self._saved_action, record_continuous_video=True, img_size=self._save_cfg["img_size"])
         _, _, _, info = self._saved_data
-        self.frames.extend(info['flex_env_recorded_frames'])
+        if self._save_frames:
+            self.frames.extend(info['flex_env_recorded_frames'])
         return np.ones((self.n_envs,))
 
     def save_video(self):

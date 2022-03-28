@@ -15,6 +15,7 @@ import logging
 #from plan_abstractions.learning.mde_gnn_utils import pillar_state_to_graph, add_action_feature_to_graph, \
 #    graph_distance_function
 from plan_abstractions.utils import dists_and_actions_from_states_and_parameters, get_pose_pillar_state
+from plan_abstractions.utils.distance_functions import *
 
 logger = logging.getLogger(__name__)
 
@@ -104,7 +105,7 @@ def remove_outliers(dataset, high_deviation=10.5):
     return new_dataset
 
 
-def extract_model_deviations_from_processed_datas(processed_datas, skill, env_cls, sem_state_obj_names, plot,
+def extract_model_deviations_from_processed_datas(cfg, processed_datas, skill, env_cls, sem_state_obj_names, plot,
                                                   use_sim_model=False, graph_transitions=False, save_all=False,
                                                   do_data_aug=False, state_and_param_to_features=True, data_aug_cfg=None, env=None,
                                                   shuffle=True):
@@ -115,9 +116,13 @@ def extract_model_deviations_from_processed_datas(processed_datas, skill, env_cl
     init_states = processed_datas["init_states"]
     parameters = processed_datas["parameters"]
     end_states = processed_datas["end_states"]
+    if cfg["shared_info"]["distance_function"] is not None:
+        distance_function = eval(cfg["shared_info"]["distance_function"])
+    else:
+        distance_function = lambda pred_effects, end_state : np.linalg.norm(pred_effects-end_state)
     for init_state, parameter, end_state in zip(init_states, parameters, end_states):
         pred_effects = skill.effects(init_state, parameter)
-        deviation = np.linalg.norm(pred_effects-end_state)
+        deviation = distance_function(pred_effects,end_state)
         deviations.append(deviation)
     states_and_parameters = np.hstack([init_states, parameters])
     features = state_and_param_to_features(states_and_parameters)
@@ -543,7 +548,7 @@ def feature_type_to_state_and_param_to_features_fn(feature_type):
     return fn
 
 
-def make_deviation_datalists(cfg, feature_type=False, plot=0, shuffle=True, graphs=False, setup_callbacks=[], processed_datas=None, state_and_param_to_features=None):
+def make_deviation_datalists(cfg, feature_type=False, plot=0, shuffle=True, graphs=False, setup_callbacks=[], processed_datas_train=None, processed_datas_val=None, state_and_param_to_features=None):
     """
     Note: feature_type is kept for compatibility but should not be used if state_and_param_to_features is not None
     """
@@ -586,13 +591,13 @@ def make_deviation_datalists(cfg, feature_type=False, plot=0, shuffle=True, grap
                                                                      state_and_param_to_features=state_and_param_to_features,
                                                                      shuffle=shuffle, graphs=graphs,
                                                                      use_sim_model=use_sim_model,
-                                                                     processed_datas=processed_datas,
+                                                                     processed_datas=processed_datas_train,
                                                                      env=env)
         states_and_parameters_val_this_skill, deviations_val_this_skill = get_deviations_from_data(cfg, "val_root", "val_tags", env_cls, skill,
                                                                              skill_cfg, skill_cls, plot, shuffle=shuffle,
                                                                              save_all=True, graphs=graphs,
                                                                              state_and_param_to_features=state_and_param_to_features,
-                                                                             processed_datas=processed_datas,
+                                                                             processed_datas=processed_datas_val,
                                                                              use_sim_model=use_sim_model, env=env)
         states_and_parameters_train_all_skills.append(states_and_parameters_this_skill)
         states_and_parameters_val_all_skills.append(states_and_parameters_val_this_skill)
@@ -636,7 +641,7 @@ def get_deviations_from_data(cfg, train_data_key, data_tags_key, env_cls, skill,
                                                                                                     shuffle=shuffle,
                                                                                                     graph_transitions=graphs)
     else:
-        deviations, states_and_parameters = extract_model_deviations_from_processed_datas(processed_datas, skill,
+        deviations, states_and_parameters = extract_model_deviations_from_processed_datas(cfg, processed_datas, skill,
                                                                                           env_cls,
                                                                                           sem_state_obj_names, plot,
                                                                                           save_all=save_all,
