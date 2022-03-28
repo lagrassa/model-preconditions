@@ -9,6 +9,6 @@ task:
     randomize: False
     goal_pose_ranges:
       low:  [0.40, 0.05]
-      high: [0.6, 0.4]
+      high: [0.7, 0.5]
 
 

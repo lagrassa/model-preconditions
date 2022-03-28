@@ -121,6 +121,7 @@ def extract_model_deviations_from_processed_datas(processed_datas, skill, env_cl
         deviations.append(deviation)
     states_and_parameters = np.hstack([init_states, parameters])
     features = state_and_param_to_features(states_and_parameters)
+    import ipdb; ipdb.set_trace()
     order = np.arange(len(deviations))
     random_order = np.random.permutation(order)
     deviations = np.array(deviations)

@@ -62,7 +62,8 @@ class WaterEnv(BaseEnv):
 
     def get_sem_state(self, should_reset_to_viewable=False):
         assert not isinstance(self._saved_data[0][0][0], np.ndarray)
-        return self._saved_data[0][0]
+        state_vector = self._saved_data[0][0]
+        return state_vector[np.array([0,1,-1])]
 
     def reset(self, n_steps=10):
         self._scene.reset()

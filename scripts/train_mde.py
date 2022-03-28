@@ -26,10 +26,15 @@ def make_vector_datas(cfg):
     data_root = cfg["data"]["root"]
     folder_name = cfg["data"]["tags"][0]
     data_dir = os.path.join(data_root, folder_name)
+    data_list = []
     for exp_name in os.listdir(data_dir):
         data =  np.load(os.path.join(data_dir, exp_name), allow_pickle=True).item()
         data['parameters']  = data["params"]
-    return data 
+        data_list.append(data)
+    data_combined = {}
+    for key in data_list[0].keys(): #assumes same keys
+        data_combined[key] = np.vstack([dataset[key] for dataset in data_list])
+    return data_combined
 
 def main():
     cfg = YamlConfig("cfg/train/mde_train/rigid_12.yaml")

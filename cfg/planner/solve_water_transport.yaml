@@ -10,7 +10,7 @@ data_root_dir: /tmp
 
 
 tag: default
-seed: 3 #5 starts out in goal state now
+seed: 18 #5 starts out in goal state now
 original_cwd : ''
 
 root_tag: default
@@ -28,7 +28,7 @@ max_leaf_nodes: 3
 max_search_depth: 3
 
 save_transition_cfg:
-    dirpath: /home/lagrassa/plan_abstractions/mde_train_data
+    dirpath: /home/lagrassa/plan_abstractions/two_d_water_transport1
 
 
 # these are here in case collect_skill_data_via_planner.py is ran outside of run_iterative_training.sh
@@ -54,14 +54,15 @@ skills:
         sem_cfg:
           type: RigidModel #DrawerAndRobot #SEMSimpleFreeSpace # SEMMLP
           env: WaterEnv #actually correct
-          dim_state: 13
+          dim_state: 3
           pillar_state_convert: False
         deviation_cfg:
-          use_deviation_model: 0
+          use_deviation_model: 1
           state_and_param_to_features: extract_first_and_last
           env: WaterEnv
           type: MLPModel
-          run_path: iam-lab/water/29t8813n
+          dim_state: 3
+          run_path: iam-lab/water/zj2hqazj #171q1i5r #25vt1xe2 #29t8813n
           acceptable_deviation: 0.02
 planner:
   type: MRAStar # MCTS, AStar
@@ -74,6 +75,6 @@ planner:
     eps: 5
     num_models: 1
     wm: [10,1]
-    n_params_per_skill: 10
+    n_params_per_skill: 50
     use_gt_effects: False
     use_multiple_models : True

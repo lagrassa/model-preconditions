@@ -41,10 +41,10 @@ class TransitionModel(ABC):
         debug_name = self._model_cfg["debug_name"]
         if not res:
             logging.debug(f"Precondition violated for {debug_name} because predicted deviation was {predicted_deviation} for parameters {parameters.round(2)}")
-            print(f"Precondition violated for {debug_name} because predicted deviation was {predicted_deviation} for parameters {parameters.round(2)}")
+            print(f"Precondition violated for {debug_name} because predicted deviation was {predicted_deviation} for parameters {parameters.round(2)} and state {state.round(2)}")
         else:
-            logging.debug(f"Precondition satisfied for {debug_name} because predicted deviation is {predicted_deviation} ")
-            #print(f"Precondition satisfied for {debug_name} because predicted deviation is {predicted_deviation} ")
+            logging.debug(f"Precondition satisfied for {debug_name} because predicted deviation is {predicted_deviation} for parameters {parameters.round(2)} ")
+            print(f"Precondition satisfied for {debug_name} because predicted deviation is {predicted_deviation} for parameters {parameters.round(2)} and state {state[:2]} ")
         return res
 
 
