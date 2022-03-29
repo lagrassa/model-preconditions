@@ -35,7 +35,7 @@ shared_info:
   state_and_param_to_features: extract_first_and_last
   sem_cfg:
     type: RigidModel 
-    env: WaterEnv #actually correct
+    env: WaterEnv2D #actually correct
     dim_state: 13
     pillar_state_convert: False
     model_cfg: 
@@ -80,7 +80,7 @@ wandb:
 skills:
   WaterTransport2D:
     low_level: False
-    env: WaterEnv # PushRodEnv, FrankaDrawerEnv
+    env: WaterEnv2D # PushRodEnv, FrankaDrawerEnv
     c1: 4
     c2: 1
     train:

@@ -1,4 +1,4 @@
-env: WaterEnv2D
+env: WaterEnv3D
 original_cwd: ""
 
 n_init_states: 8

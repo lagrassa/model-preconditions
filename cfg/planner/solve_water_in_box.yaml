@@ -3,8 +3,8 @@ hydra:
     dir: ${data_root_dir}/${tag}/${now:%Y-%m-%d_%H-%M-%S}/
 
 defaults:
-  - tasks: move_water.yaml
-  - envs: water_env.yaml
+  - tasks: water_in_box.yaml
+  - envs: pour_env.yaml
 
 data_root_dir: /tmp
 
@@ -28,7 +28,7 @@ max_leaf_nodes: 3
 max_search_depth: 3
 
 save_transition_cfg:
-    dirpath: /home/lagrassa/plan_abstractions/two_d_water_transport1
+    dirpath: /home/lagrassa/plan_abstractions/pour
 
 
 # these are here in case collect_skill_data_via_planner.py is ran outside of run_iterative_training.sh

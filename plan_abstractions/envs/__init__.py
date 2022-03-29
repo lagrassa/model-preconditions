@@ -1,6 +1,7 @@
 from .franka_env import FrankaRodEnv, make_franka_rod_test_env, make_franka_test_env_already_holding
 from .franka_drawer_env import FrankaDrawerEnv
-from .water_env import WaterEnv
+from .water_transport_env import WaterEnv2D
+from .pouring_env import WaterEnv3D
 try:
     from .franka_drawer_env_real import RealFrankaDrawerEnv
     from .franka_env_real import RealFrankaRodEnv

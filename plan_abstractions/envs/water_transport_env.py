@@ -20,7 +20,7 @@ from ..utils import yaw_from_quat, yaw_from_np_quat, get_rod_rel_goal_RigidTrans
     set_fingers_and_visualize_pillar_state, place_grippers_in_pillar_state
 
 
-class WaterEnv(BaseEnv):
+class WaterEnv2D(BaseEnv):
     def __init__(self, cfg, setup_callbacks=[], for_mde_training=False, baseboard = True):
         super().__init__(cfg, for_mde_training=for_mde_training, is_ig_env=False)
         softgym_env_name = "PourWater"
@@ -114,7 +114,7 @@ class WaterEnv(BaseEnv):
 
 if __name__ == "__main__":
     cfg = YamlConfig("cfg/envs/water_env.yaml")
-    env = WaterEnv(cfg)
+    env = WaterEnv2D(cfg)
     env.save_action(np.array([0.0,0.05 , 0]))
     for i in range(50):
         env.step()

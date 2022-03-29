@@ -1,0 +1,14 @@
+task:
+  env: WaterEnv3D
+  #real_env: RealFrankaRodEnv
+  type: WaterInBox
+  goal:
+    volume_tol: 0.05
+    water_out_tol: 0.05
+    volume: 0.1
+    randomize: True
+    volume_ranges:
+      low:  [0.1]
+      high: [0.8]
+
+
