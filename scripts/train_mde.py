@@ -6,7 +6,7 @@ from sklearn.model_selection import train_test_split
 from autolab_core import YamlConfig
 
 from plan_abstractions.learning.data_utils import make_deviation_datalists, eval_model, train_and_fit_model, \
-    remove_outliers, make_vector_datas
+    remove_outliers, make_vector_datas, data_restrict_training_set
 from plan_abstractions.utils import extract_first_and_last, identity
 from plan_abstractions.models.mdes import *
 
@@ -24,9 +24,10 @@ logger = logging.getLogger(__name__)
 logger.setLevel('INFO')
 
 
-def main():
+def train_mde(max_num_data=None, cfg=None):
     #cfg = YamlConfig("cfg/train/mde_train/rigid_12.yaml")
-    cfg = YamlConfig("cfg/train/mde_train/learned_for_pour.yaml")
+    if cfg is None:
+        cfg = YamlConfig("cfg/train/mde_train/learned_for_pour.yaml")
     log = logging.getLogger(__name__)
     cfg['original_cwd'] = os.getcwd() #hydra.utils.get_original_cwd()
     set_seed(cfg['seed'])
@@ -52,8 +53,9 @@ def main():
                                                 processed_datas_train = processed_datas_train, processed_datas_val=processed_datas_val, graphs=cfg.get("graphs", False))  # shuffle=cfg.get('train', True))
         if "dataset_save_loc" in cfg.keys():
             np.save(cfg["dataset_save_loc"], dataset_data)
-    import ipdb; ipdb.set_trace()
     dataset_data = remove_outliers(dataset_data)
+    if max_num_data is not None:
+        data_restrict_training_set(dataset_data, max_num_data, skill_name=cfg.get("skill_name"))
     states_and_parameters, deviations = dataset_data["training"]
     logger.info(f"training dataset of {len(states_and_parameters)} ")
     test_states_and_parameters, test_deviations = dataset_data["test"]
@@ -113,7 +115,8 @@ def main():
             for filename in filenames:
                 wandb.save(str(filename), base_path=str(hydra_dir))
             wandb.save(str(hydra_dir / '.hydra' / '*.yaml'), base_path=str(hydra_dir))
+    return experiment.path
 
 
 if __name__ == '__main__':
-    main()
+    train_mde(max_num_data=None, cfg=None)

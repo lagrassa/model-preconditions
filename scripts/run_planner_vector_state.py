@@ -170,7 +170,7 @@ def update_transition_records(plan_exec_data, current_transition_records, transi
 
 # @hydra.main(config_path='../cfg/planner', config_name='mcts_push_rods_lqr.yaml')
 @hydra.main(config_path='../cfg/planner', config_name='solve_push_one_rod_franka_4_skills.yaml')
-def main(cfg):
+def main(cfg, num_initial_states_to_test=None):
     print("Setting seed to be", cfg['seed'])
     set_seed(cfg['seed'])
     save_dir = Path(os.getcwd())
@@ -182,7 +182,8 @@ def main(cfg):
     cfg['original_cwd'] = hydra.utils.get_original_cwd()
 
     total_goals_to_reach_per_iter = 1
-    num_initial_states_to_test = cfg['n_init_states']
+    if num_initial_states_to_test is None:
+        num_initial_states_to_test = cfg['n_init_states']
     total_goals_to_reach = num_initial_states_to_test * total_goals_to_reach_per_iter
     current_transition_records = {}
     for skill_type, skill_cfg in cfg['skills'].items():
@@ -278,6 +279,7 @@ def main(cfg):
                  + f"    actual  goals reached: {actual_goals_reached}, ({actual_goals_reached/total_goals_to_reach:.2f})"
                  + f"    model_evals_per_sec {np.mean(num_model_evals_per_sec_total)}\n"
                  + f"    elapsed time {np.mean(elapsed_times)}")
+    return planner_goals_reached, actual_goals_reached, total_goals_to_reach
 
 
 if __name__ == '__main__':
