@@ -121,15 +121,16 @@ def extract_model_deviations_from_processed_datas(cfg, processed_datas, skill, e
     else:
         distance_function = lambda pred_effects, end_state : np.linalg.norm(pred_effects-end_state)
     for init_state, parameter, end_state in zip(init_states, parameters, end_states):
-        pred_effects = skill.effects(init_state, parameter)
+        pred_effects = skill.effects(init_state, parameter)["end_states"][0]
         deviation = distance_function(pred_effects,end_state)
         deviations.append(deviation)
     states_and_parameters = np.hstack([init_states, parameters])
+    deviations = np.array(deviations)
+    if do_data_aug:
+        states_and_parameters, deviations  = vector_data_augmentation(states_and_parameters, deviations, data_aug_cfg=data_aug_cfg)
     features = state_and_param_to_features(states_and_parameters)
-    import ipdb; ipdb.set_trace()
     order = np.arange(len(deviations))
     random_order = np.random.permutation(order)
-    deviations = np.array(deviations)
     if shuffle:
         order = random_order
     return deviations[order].reshape(-1, 1), features[order]
@@ -247,7 +248,7 @@ def rod_extract_model_deviations_from_processed_datas(processed_datas, skill, en
     all_rod_state_diffs = 0.5 * (rod_state_diffs[::2] + rod_state_diffs[1::2])
     deviations = ee_state_diffs + all_rod_state_diffs + bin_diffs
     if do_data_aug:
-        states_and_parameters, deviations  = vector_data_augmentation(states_and_parameters, deviations, data_aug_cfg=data_aug_cfg)
+        states_and_parameters, deviations  = rod_vector_data_augmentation(states_and_parameters, deviations, data_aug_cfg=data_aug_cfg)
     else: #not "true" data augmentation, just flips rod positions
         states_and_parameters, deviations = augment_with_flipped(states_and_parameters, deviations)
 
@@ -288,8 +289,34 @@ def augment_with_flipped(states_and_parameters, deviations):
     deviations = np.hstack([deviations, deviations])
     return states_and_parameters, deviations
 
-
 def vector_data_augmentation(states_and_parameters, deviations, data_aug_cfg):
+    num_noise_aug = data_aug_cfg.get('num_noise_aug', 3000)
+    state_mag = data_aug_cfg.get('state_noise_mag',0.005)  # 0.015
+    action_mag = data_aug_cfg.get('action_noise_mag',0.05) # 0.1
+    state_ndim = data_aug_cfg["state_ndim"]
+    num_og_data = len(states_and_parameters)
+    augmented_states_and_parameters = np.zeros(
+        (states_and_parameters.shape[0] * (num_noise_aug), states_and_parameters.shape[1]))
+    augmented_deviations = np.zeros((deviations.shape[0] * (num_noise_aug),))
+    # Half are adding random noise to the parameters. The other half add a grid of x and y values. you'll add data_aug_num to it.
+    for aug_i in range(num_noise_aug):
+        if aug_i < num_noise_aug:
+            # augmented_state_param_sample = states_and_parameters + np.random.uniform(low=state_low, high= state_high, size = states_and_parameters.shape)
+            augmented_state_param_sample = states_and_parameters.copy()
+            augmented_state_param_sample[:, :state_ndim] += np.random.normal(0, state_mag / 1.96,
+                                                                     size=states_and_parameters[:, :state_ndim].shape)
+            augmented_state_param_sample[:, state_ndim:] += np.random.normal(0, action_mag / 1.96,
+                                                                     size=states_and_parameters[:, state_ndim:].shape)
+            augmented_dev_sample = deviations
+
+        augmented_states_and_parameters[aug_i * num_og_data:aug_i * num_og_data + num_og_data,
+        :] = augmented_state_param_sample
+        augmented_deviations[aug_i * num_og_data: aug_i * num_og_data + num_og_data] = augmented_dev_sample
+    states_and_parameters = np.vstack([augmented_states_and_parameters, states_and_parameters])
+    deviations = np.hstack([augmented_deviations, deviations])
+    return states_and_parameters, deviations
+
+def rod_vector_data_augmentation(states_and_parameters, deviations, data_aug_cfg):
     num_noise_aug = data_aug_cfg.get('num_noise_aug', 3000)
     # 3000, #1200, #2,#,40,
     num_grid_aug = data_aug_cfg.get("num_grid_aug", 10)
@@ -552,8 +579,8 @@ def make_deviation_datalists(cfg, feature_type=False, plot=0, shuffle=True, grap
     """
     Note: feature_type is kept for compatibility but should not be used if state_and_param_to_features is not None
     """
-    from ..envs import FrankaRodEnv, FrankaDrawerEnv, WaterEnv
-    from ..skills import FreeSpaceMoveToGroundFranka, OpenDrawer, LiftAndPlace, LiftAndDrop, Pick, WaterTransport2D
+    from ..envs import FrankaRodEnv, FrankaDrawerEnv, WaterEnv2D, WaterEnv3D
+    from ..skills import FreeSpaceMoveToGroundFranka, OpenDrawer, LiftAndPlace, LiftAndDrop, Pick, WaterTransport2D, Pour
     if feature_type and state_and_param_to_features is None:
         state_and_param_to_features = feature_type_to_state_and_param_to_features_fn(feature_type)
     states_and_parameters_train_all_skills = []
@@ -607,7 +634,7 @@ def make_deviation_datalists(cfg, feature_type=False, plot=0, shuffle=True, grap
     states_and_parameters_val = np.vstack(states_and_parameters_val_all_skills)
     deviations = np.vstack(deviations_train_all_skills)
     deviations_val = np.vstack(deviations_val_all_skills)
-    if not graphs:
+    if False and not graphs:
         logger.info(f"Validation dataset : {states_and_parameters_val.shape}")
         max_distance_to_training_data = [
             min(np.linalg.norm(states_and_parameters_val[i] - states_and_parameters, axis=1)) for i in
@@ -662,6 +689,7 @@ def eval_model(deviation_model, train_states_and_params, train_deviations,
     pred_validation_deviations = deviation_model.predict(validation_states_and_params, already_transformed_state_vector=True)
     pred_train_deviations = deviation_model.predict(train_states_and_params, already_transformed_state_vector=True)
     pred_test_deviations = deviation_model.predict(test_states_and_params, already_transformed_state_vector=True)
+    import ipdb; ipdb.set_trace()
     if plot:
         plt.scatter(train_deviations, pred_train_deviations)
         plt.show()
@@ -723,3 +751,22 @@ def print_and_log_stats(gt_deviations, pred_deviations):
         print(f"{key} : {data[key]}")
     return data
 
+
+def make_vector_datas(cfg, skill_name=None, tag_name="tags"):
+    data_root = cfg["data"]["root"]
+    folder_name = cfg["data"][tag_name][0]
+    data_dir = os.path.join(data_root, folder_name)
+    data_list = []
+    for exp_name in os.listdir(data_dir):
+        data =  np.load(os.path.join(data_dir, exp_name), allow_pickle=True).item()
+        if skill_name is not None:
+            data = data[skill_name]
+        data['parameters']  = data["params"]
+        data_list.append(data)
+    data_combined = {}
+    for key in data_list[0].keys(): #assumes same keys
+        try:
+            data_combined[key] = np.vstack([dataset[key] for dataset in data_list])
+        except:
+            import ipdb; ipdb.set_trace()
+    return data_combined

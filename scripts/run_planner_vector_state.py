@@ -94,7 +94,7 @@ def run_planner_on_task(cfg, env, skills, task, save_dir, init_state, eval_env =
         #plan_to_execute = goal_closest_leaf_node.find_path_from_root()
         plan_to_execute = []
         debug_plan_str = ""
-    max_gt_path_length_to_execute = cfg.get('max_gt_path_length_to_execute', 11)
+    max_gt_path_length_to_execute = cfg.get('max_gt_path_length_to_execute', 20)
     if len(plan_to_execute) > max_gt_path_length_to_execute:
         logging.info(f"Length of plan to execute: {len(plan_to_execute)}. Too long will trim to {max_gt_path_length_to_execute}.")
         plan_to_execute = plan_to_execute[:max_gt_path_length_to_execute]
@@ -153,17 +153,18 @@ def run_planner_on_task(cfg, env, skills, task, save_dir, init_state, eval_env =
 def update_transition_records(plan_exec_data, current_transition_records, transition_data_fn):
     skill_exec_data_list = plan_exec_data['skill_exec_data']
     #assuming just 1 env idx 
-    data_item_names = current_transition_records.keys()
+    data_item_names = list(current_transition_records.values())[0].keys()
     env_idx = 0
     for skill_exec_data_point in skill_exec_data_list:
-        if current_transition_records['init_states'] is None:
+        skill_name = skill_exec_data_point["skill_name"]
+        if current_transition_records[skill_name]['init_states'] is None:
             #Need to initialize
             for name in data_item_names:
-                current_transition_records[name] = skill_exec_data_point[name][env_idx]
+                current_transition_records[skill_name][name] = skill_exec_data_point[name][env_idx]
         else:
             #Can also pre-allocate, but this is nice because this process often crashes/needs to be interrupted
             for name in data_item_names:
-                current_transition_records[name] = np.vstack([current_transition_records[name],skill_exec_data_point[name][env_idx]])
+                current_transition_records[skill_name][name] = np.vstack([current_transition_records[skill_name][name],skill_exec_data_point[name][env_idx]])
     np.save(transition_data_fn, current_transition_records)
 
 
@@ -183,7 +184,9 @@ def main(cfg):
     total_goals_to_reach_per_iter = 1
     num_initial_states_to_test = cfg['n_init_states']
     total_goals_to_reach = num_initial_states_to_test * total_goals_to_reach_per_iter
-    current_transition_records = {'init_states':None,'params':None,'end_states':None}
+    current_transition_records = {}
+    for skill_type, skill_cfg in cfg['skills'].items():
+        current_transition_records[skill_type] = {'init_states':None,'params':None,'end_states':None}
 
 
     logger.info('Making env, task, and skills...')

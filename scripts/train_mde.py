@@ -1,14 +1,14 @@
+import isaacgym.gymapi
 # given some planner data train a model that predicts the deviation from the model, upload this model to wandb - RFR?
 __spec__ = None  # to allow for ipdb during wandb
 
 from sklearn.model_selection import train_test_split
-from isaacgym import gymapi
 from autolab_core import YamlConfig
 
 from plan_abstractions.learning.data_utils import make_deviation_datalists, eval_model, train_and_fit_model, \
-    remove_outliers
+    remove_outliers, make_vector_datas
+from plan_abstractions.utils import extract_first_and_last, identity
 from plan_abstractions.models.mdes import *
-from plan_abstractions.utils import extract_first_and_last
 
 import logging
 import os
@@ -22,22 +22,11 @@ from isaacgym_utils.math_utils import set_seed
 
 logger = logging.getLogger(__name__)
 logger.setLevel('INFO')
-def make_vector_datas(cfg, tag_name="tags"):
-    data_root = cfg["data"]["root"]
-    folder_name = cfg["data"][tag_name][0]
-    data_dir = os.path.join(data_root, folder_name)
-    data_list = []
-    for exp_name in os.listdir(data_dir):
-        data =  np.load(os.path.join(data_dir, exp_name), allow_pickle=True).item()
-        data['parameters']  = data["params"]
-        data_list.append(data)
-    data_combined = {}
-    for key in data_list[0].keys(): #assumes same keys
-        data_combined[key] = np.vstack([dataset[key] for dataset in data_list])
-    return data_combined
+
 
 def main():
-    cfg = YamlConfig("cfg/train/mde_train/rigid_12.yaml")
+    #cfg = YamlConfig("cfg/train/mde_train/rigid_12.yaml")
+    cfg = YamlConfig("cfg/train/mde_train/learned_for_pour.yaml")
     log = logging.getLogger(__name__)
     cfg['original_cwd'] = os.getcwd() #hydra.utils.get_original_cwd()
     set_seed(cfg['seed'])
@@ -51,8 +40,8 @@ def main():
     if "dataset_file_cache" in cfg.keys():
         dataset_data = np.load(cfg["dataset_file_cache"], allow_pickle=True).item()
     else:
-        processed_datas_train = make_vector_datas(cfg, tag_name="tags")
-        processed_datas_val = make_vector_datas(cfg, tag_name="val_tags")
+        processed_datas_train = make_vector_datas(cfg, skill_name=cfg.get("skill_name", None), tag_name="tags")
+        processed_datas_val = make_vector_datas(cfg,skill_name=cfg.get("skill_name", None), tag_name="val_tags")
         if 'feature_type' not in cfg.keys() and 'state_and_param_to_features' not in cfg['shared_info'].keys(): #Backwards compat. 
             feature_type = "dists_and_action_only"
             state_and_param_to_features=None

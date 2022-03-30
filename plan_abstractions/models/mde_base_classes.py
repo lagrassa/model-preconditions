@@ -5,12 +5,12 @@ from sklearn.metrics import make_scorer
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.preprocessing import StandardScaler
 
-from plan_abstractions.utils import dists_and_actions_from_states_and_parameters, augment_with_dists, extract_first_and_last
+from plan_abstractions.utils import dists_and_actions_from_states_and_parameters, augment_with_dists, extract_first_and_last, identity
 
 
 class DeviationModel():
     def __init__(self, cfg):
-        from ..envs import FrankaRodEnv, FrankaDrawerEnv, WaterEnv
+        from ..envs import FrankaRodEnv, FrankaDrawerEnv, WaterEnv2D, WaterEnv3D
         if 'env' in cfg.keys():
             self._env_cls = eval(cfg["env"])
         if 'data' in cfg.keys():

@@ -39,8 +39,9 @@ class Planner(ABC):
             self._check_similar = self._cfg['check_similar']
         else:
             self._check_similar = True #algorithm can do whatever it wants with this info to merge similar states.
-        if cfg.get("use_multiple_models", False):
-            self._pb_env = FrankaKinematicsWorld(root_dir = root_dir, visualize=False)
+        #if cfg.get("use_multiple_models", False):
+        #    self._pb_env = FrankaKinematicsWorld(root_dir = root_dir, visualize=False)
+        self._pb_env=None
     
     @property
     def cfg(self):

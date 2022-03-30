@@ -49,9 +49,21 @@ class WaterEnv3D(WaterEnv2D):
 
 if __name__ == "__main__":
     cfg = YamlConfig("cfg/envs/pour_env.yaml")
-    env = WaterEnv(cfg)
-    env.save_action(np.array([0.0,0.05 , 0]))
-    for i in range(50):
-        env.step()
-        print(env.get_sem_state().round(2))
-    env.save_video()
+    from ..skills import Pour, WaterTransport2D
+    pour_skill = Pour()
+    env = WaterEnv3D(cfg)
+    state = env.get_sem_state()
+    parameters = np.array([[1.5]])
+    move_skill = WaterTransport2D()
+    move_skill.execute(env, [state], np.array([[state[0]+0.15, 0.1]]), 1, 20, set_state=False)
+    move_skill.execute(env, [state], np.array([[state[0]+0.25, 0.3]]), 1, 20, set_state=False)
+    state_after = env.get_sem_state()
+    import ipdb; ipdb.set_trace()
+    pour_skill.execute(env, [state], parameters, 1, 20, set_state=False)
+    pour_skill.execute(env, [state], parameters, 1, 20, set_state=False)
+    pour_skill.execute(env, [state], np.array([[0]]), 1, 20, set_state=False)
+    #env.save_action(np.array([0.0,0.05 , 0]))
+    #for i in range(50):
+    #    env.step()
+    #    print(env.get_sem_state().round(2))
+    #env.save_video()

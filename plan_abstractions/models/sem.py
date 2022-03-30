@@ -27,7 +27,7 @@ def create_sem_wrapper_from_cfg(cfg, cache_dir='/tmp',skill_cls=None, sem_state_
         drawer_edge_dims = cfg["drawer_edge_dims"]
         sem = eval(cfg['type'])(2, dim_state, drawer_edge_dims)
         is_analytical = True
-    elif "Linear" in cfg['type']:
+    elif "Linear" in cfg['type'] or "RFR" in cfg['type']:
         sem = eval(cfg['type'])(cfg["model_cfg"])
     else:
         sem = eval(cfg['type'])(2, dim_state)

@@ -201,9 +201,9 @@ class Skill(ABC):
             _set_end_states_given_mask(effects_all, effects, idx_mask)
             effects_all["costs"][idx_mask] = effects["costs"]
             if "T_exec" in effects.keys():
-                effects_all["T_exec"][idx_mask] = effects["T_exec"][effect_idx]
+                effects_all["T_exec"][idx_mask] = effects["T_exec"]
             if "info_plan" in effects.keys():
-                effects_all["info_plan"][idx_mask] = [plan_dict for plan_dict in effects["info_plan"][effect_idx]]
+                effects_all["info_plan"][idx_mask] = [plan_dict for plan_dict in effects["info_plan"]]
         return effects_all
 
 
@@ -501,8 +501,8 @@ class Skill(ABC):
                 if env._real_robot:
                     pillar_state = env.get_end_state(should_reset_to_viewable = self._should_reset_to_viewable)
                 else:
-                    pillar_state = env.get_state(env_idx)
-                data['end_states'][env_idx] = pillar_state.get_serialized_string()
+                    pillar_state = env.get_sem_state(env_idx)
+                data['end_states'][env_idx] = pillar_state #.get_serialized_string()
                 if save_low_level_transitions:
                     data["low_level_states"][env_idx].pop() #remove last element because this data field is only supposed to include
                 #the first and up to the last

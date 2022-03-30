@@ -59,6 +59,7 @@ class SEMModel(TransitionModel):
             sem_state_obj_names = None
         self._sem_wrapper = create_sem_wrapper_from_cfg(sem_cfg, sem_state_obj_names=sem_state_obj_names, cache_dir=cache_dir)
 
+
     def apply(self, states, params, env, T_plan_max, T_exec_max, skill, pb_env):
         effects_list = [
             self._sem_wrapper(state, parameters)
@@ -67,8 +68,8 @@ class SEMModel(TransitionModel):
         if isinstance(effects_list[0], np.ndarray):
             effects = {}
             effects_list = np.vstack(effects_list)
-            effects["end_states"] = effects_list
-            effects["costs"] = np.ones((len(effects_list),))
+            effects["end_states"] = effects_list[:,:-1]
+            effects["costs"] = effects_list[:,-1]
 
         else: #uses old effects specification
             effects = {k: [] for k in effects_list[0]}

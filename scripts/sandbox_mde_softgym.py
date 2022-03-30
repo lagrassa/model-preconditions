@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import os
 from sklearn.linear_model import LinearRegression
 exp_name = "transition_data_2.npy"
-data_root = "/home/lagrassa/plan_abstractions/mde_train_data/"
+data_root = "/home/lagrassa/plan_abstractions/two_d_water_transport1"
 data_dir = os.path.join(data_root, exp_name)
 data =  np.load(os.path.join(data_root, exp_name), allow_pickle=True).item()
 init_state_data = data["init_states"]

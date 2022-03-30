@@ -57,12 +57,12 @@ skills:
           dim_state: 3
           pillar_state_convert: False
         deviation_cfg:
-          use_deviation_model: 0
+          use_deviation_model: 1
           state_and_param_to_features: extract_first_and_last
           env: WaterEnv2D
           type: MLPModel
-          dim_state: 3
-          run_path: iam-lab/water/1febpe4y #171q1i5r #25vt1xe2 #29t8813n
+          dim_state: 13
+          run_path: iam-lab/water/3mr4fqu5 #1febpe4y #171q1i5r #25vt1xe2 #29t8813n
           acceptable_deviation: 0.01
 planner:
   type: MRAStar # MCTS, AStar

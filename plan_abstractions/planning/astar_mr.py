@@ -124,7 +124,6 @@ class MRAStar(Planner):
         if self._similar_to_node_in_queue(node, self._closed_anchor):
             return []
         assert not node.has_been_expanded
-        print("Full expansion")
         logger.debug("Full Expanding")
         children = []
         for skill_idx in node.skill_idxs:
@@ -237,7 +236,7 @@ class MRAStar(Planner):
         assert len(model_idx_per_param) == len(params)
         return effects, model_idx_per_param
 
-    def _search(self, log_every=10, timeout=1, max_expansions=10000,
+    def _search(self, log_every=300, timeout=1, max_expansions=10000,
                 max_search_depth=float('inf')):
         self._root_node.g = 0
         self._root_node.h = self._task.evaluate(self._root_node.pillar_state)

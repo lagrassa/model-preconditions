@@ -23,7 +23,7 @@ class MoveWater(BaseTask):
         super().__init__(cfg)
         self._water_out_tol = cfg["goal"]["water_out_tol"]
         self._position_tol = cfg["goal"]["position_tol"]
-        self._same_tol = 0.01
+        self._same_tol = 0.03
         self._goal_pose = cfg["goal"]["pose"]
         self._goal_pose_ranges = cfg["goal"]["goal_pose_ranges"]
         self._setup_callbacks = [] # already in env self.add_real_drawer_to_env_cb]
@@ -60,9 +60,10 @@ class WaterInBox(BaseTask):
         super().__init__(cfg)
         self._water_out_tol = cfg["goal"]["water_out_tol"]
         self._volume_tol = cfg["goal"]["volume_tol"]
-        self._same_tol = 0.01
+        self._same_tol = 0.03
         self._setup_callbacks = [] # already in env self.add_real_drawer_to_env_cb]
         self._goal_volume = cfg["goal"]["volume"]
+        self._goal_volume_ranges = cfg["goal"]["volume_ranges"]
 
 
     def states_similar(self, vector_state_1, vector_state_2):
@@ -75,14 +76,26 @@ class WaterInBox(BaseTask):
         return self.distance_to_goal_state(pillar_state)
 
     def is_goal_state(self, vector_state):
-        if self.distance_to_goal_state(vector_state) < self._volume_tol:
-            if (1-vector_state[-1]) < self._water_out_tol:
+        if abs(vector_state[-2]-self._goal_volume) < self._volume_tol:
+            water_in_total = vector_state[-1] + vector_state[-2]
+            if (1-water_in_total) < self._water_out_tol:
                 return True
         return False
 
-    def distance_to_goal_state(self, vector_state):
-        dist = np.linalg.norm(vector_state[-2]-self._goal_volume)
-        return dist
+    def distance_to_goal_state(self, state):
+        vector_state = state
+        height_control_cup = state[1]
+        height_target = state[7]
+        glass_x = state[0]
+        pos_control = state[0] #x coordinate of box, starts at 0
+        glass_distance = state[6]-state[0]
+        pos_target = glass_distance-glass_x  + 0.15
+        dx = abs(pos_target-vector_state[0]) #distance from the edge
+        #dz = abs(vector_state[1] - vector_state[7])
+        dz = 0 #min(abs(vector_state[1] - vector_state[7]), 2*vector_state[7])
+        #dist = abs(vector_state[-2]-self._goal_volume)
+        #print("dx", dx)
+        return dx + dz
 
     def resample_goal(self, env=None):
         old_goal = np.copy(self._goal_volume)

@@ -739,6 +739,9 @@ def dists_and_actions_from_states_and_parameters(states_and_parameters, state_nd
     dists_and_actions = np.hstack([transformed_features, parameters])
     return dists_and_actions
 
+def identity(states_and_parameters, state_ndims=None):
+    return states_and_parameters
+
 def extract_first_and_last(states_and_parameters, state_ndims=3, only_dists=True):
     """
     Pretty special purpose to the water world where the first and last are the most important. eventually this

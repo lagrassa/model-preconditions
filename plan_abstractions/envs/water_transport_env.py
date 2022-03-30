@@ -31,7 +31,7 @@ class WaterEnv2D(BaseEnv):
         env_kwargs['save_cached_states'] = False
         env_kwargs['num_variations'] = 1
         env_kwargs['render'] = 1#True
-        env_kwargs['headless'] = 1#False
+        env_kwargs['headless'] = not cfg['gui']
         self._n_envs=1
         self._env_idxs=[0]
         self._save_cfg = cfg["save_cfg"]
