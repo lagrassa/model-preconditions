@@ -8,7 +8,7 @@ task:
     volume: 0.8
     randomize: True
     volume_ranges:
-      low:  [0.8]
+      low:  [0.4]
       high: [0.9]
 
 

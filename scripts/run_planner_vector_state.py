@@ -64,7 +64,8 @@ def run_planner_on_task(cfg, env, skills, task, save_dir, init_state, eval_env =
     found_plan = len(plan) > 0
     print("Foundp lan? ", found_plan)
     if not found_plan:
-        import ipdb; ipdb.set_trace()
+        print("Did not find plan")
+        #import ipdb; ipdb.set_trace()
     logger.info(f'Planner done. Found plan? {found_plan}')
 
     # Save initial state to replay during debug_planner

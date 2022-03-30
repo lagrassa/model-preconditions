@@ -17,11 +17,12 @@ class RigidModel():
     def fixed_input_size(self):
         return True
 
-    def predict(self, state, action, unnormalized=False):
+    def predict(self, state, action, unnormalized=False, return_np=False):
         new_state = state.copy()
         new_state[0:2] = action.copy()
         assert len(new_state) == 13
-        costs = [np.linalg.norm(state[:2]-new_state[:2])]
+        #costs = [np.linalg.norm(state[:2]-new_state[:2])]
+        costs = [1]
         if return_np:
             return new_state
         return {
@@ -47,7 +48,7 @@ class PourConstantModel:
     def fixed_input_size(self):
         return True
 
-    def predict(self, state, action, unnormalized=False):
+    def predict(self, state, action, unnormalized=False, return_np=0):
         new_state = state.copy()
         new_state[-1] = 0.9
         new_state[-2] = 0.1
@@ -91,12 +92,22 @@ class LinearOutModel:
         self._model = reg
         np.save(self._save_file, reg)
 
-    def predict(self, state, action, unnormalized=False):
+    def predict(self, state, action, unnormalized=False, return_np=0):
         cond = np.hstack([state, action])
         if len(cond.shape) == 1:
             cond = cond.reshape(1,-1)
-        new_state= self._model.predict(self._input_scaler.transform(cond))[0]
-        return self._output_scaler.inverse_transform(new_state)
+        new_state_normed = self._model.predict(self._input_scaler.transform(cond))[0]
+        new_state= self._output_scaler.inverse_transform(new_state_normed)
+        if return_np:
+            return new_state
+        return {
+            'end_states': [new_state],
+            'T_exec': [1],
+            'costs': [0.01],
+            'info_plan': {
+                'T_plan': [1]
+            }
+        }
 
 class RFRModel:
     def __init__(self, model_cfg=None, dim_state = None):
@@ -125,7 +136,7 @@ class RFRModel:
         self._output_scaler = StandardScaler().fit(next_states)
         train_data = self._input_scaler.transform(data)
         train_labels = self._output_scaler.transform(next_states)
-        reg = RandomForestRegressor(max_depth=20, random_state=0)
+        reg = RandomForestRegressor(max_depth=None, random_state=0)
         reg.fit(train_data, train_labels)
         self._model = reg
         np.save(self._save_file, reg)
@@ -179,10 +190,10 @@ class ResidualRFRModel:
     def fixed_input_size(self):
         return True
 
-    def train(self, states, actions, next_statess):
+    def train(self, states, actions, next_states):
         data = np.hstack([states, actions])
         self._input_scaler = StandardScaler().fit(data)
-        model_predicted_next_states = np.vstack(self._base_model.predict(state, actions, return_np)for state, action in zip(states, actions)])
+        model_predicted_next_states = np.vstack([self._base_model.predict(state, actions, return_np)for state, action in zip(states, actions)])
         residual = next_states - model_predicted_next_states
         print("residual", residual.shape)
         self._output_scaler = StandardScaler().fit(residual)

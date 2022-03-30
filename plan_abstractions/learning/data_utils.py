@@ -126,6 +126,9 @@ def extract_model_deviations_from_processed_datas(cfg, processed_datas, skill, e
         deviations.append(deviation)
     states_and_parameters = np.hstack([init_states, parameters])
     deviations = np.array(deviations)
+    import ipdb; ipdb.set_trace()
+    plt.scatter(states_and_parameters[:,-3], deviations)
+    plt.show()
     if do_data_aug:
         states_and_parameters, deviations  = vector_data_augmentation(states_and_parameters, deviations, data_aug_cfg=data_aug_cfg)
     features = state_and_param_to_features(states_and_parameters)
@@ -689,7 +692,7 @@ def eval_model(deviation_model, train_states_and_params, train_deviations,
     pred_validation_deviations = deviation_model.predict(validation_states_and_params, already_transformed_state_vector=True)
     pred_train_deviations = deviation_model.predict(train_states_and_params, already_transformed_state_vector=True)
     pred_test_deviations = deviation_model.predict(test_states_and_params, already_transformed_state_vector=True)
-    import ipdb; ipdb.set_trace()
+    plot=True
     if plot:
         plt.scatter(train_deviations, pred_train_deviations)
         plt.show()

@@ -32,15 +32,15 @@ class WaterTransport2D(Skill):
             height_target = state[7]
             glass_x = state[0]
             glass_distance = state[6] - state[0]
-            noisy_object_centric_x = glass_distance - glass_x + np.random.uniform(low=0.2, high=0.5)
-            noisy_object_centric_y = height_target + np.random.uniform(low=0.09, high=0.3)
+            noisy_object_centric_x = glass_distance - glass_x + np.random.uniform(low=0.21, high=0.51)
+            noisy_object_centric_y = height_target + np.random.uniform(low=0.091, high=0.31)
             yield np.array([noisy_object_centric_x, noisy_object_centric_y])
 
     def _gen_random_parameters(self, env, state):
         while True:
             #random_dist = np.random.uniform(low=0.1, high=0.2)
-            random_dist_x = np.random.uniform(low=0.02, high=0.2)
-            random_dist_z = np.random.uniform(low=0.02, high=0.2)
+            random_dist_x = np.random.uniform(low=0.018, high=0.19)
+            random_dist_z = np.random.uniform(low=0.019, high=0.19)
             random_dist = np.array([random_dist_x, random_dist_z])
             curr_state = state[0:2]
             yield curr_state + random_dist
@@ -125,7 +125,7 @@ class Pour(Skill):
         while True:
             #random_dist = np.random.uniform(low=0.1, high=0.2)
             #random_theta = np.random.uniform(low=0.9, high=3.1)
-            random_theta = np.random.uniform(low=0.8, high=2.5)
+            random_theta = np.random.uniform(low=0.78, high=2.45)
             yield np.array([random_theta])
 
     def _gen_relation_centric_parameters(self, env, state):

@@ -10,7 +10,7 @@ data_root_dir: /tmp
 
 
 tag: default
-seed: 26 #5 starts out in goal state now
+seed: 96 #5 starts out in goal state now
 original_cwd : ''
 
 root_tag: default
@@ -28,7 +28,7 @@ max_leaf_nodes: 3
 max_search_depth: 3
 
 save_transition_cfg:
-    dirpath: /home/lagrassa/plan_abstractions/pourbetterprecond_mde_train_val #pourbetterprecond
+    dirpath: /home/lagrassa/plan_abstractions/pourbetterprecond_train_model_val #pourbetterprecond
 
 
 # these are here in case collect_skill_data_via_planner.py is ran outside of run_iterative_training.sh
@@ -43,9 +43,9 @@ skills:
     use: True
     cache_dir: /tmp
     param_sampling_probabilities:
-      object_centric: 0.5
+      object_centric: 0.6
       relation_centric: 0.0
-      random: 0.5
+      random: 0.4
       task_oriented: 0.0 #should be 0 for collect_skill_data
     high_level_models:
       SEMModel1:
@@ -83,7 +83,7 @@ skills:
           pillar_state_convert: False
           model_cfg:
             load: True
-            save_file: /home/lagrassa/git/model-preconditions/data/RFRModel.npy
+            save_file: /home/lagrassa/git/model-preconditions/data/RFRModel2.npy
 
         deviation_cfg:
           use_deviation_model: 1
@@ -91,19 +91,19 @@ skills:
           env: WaterEnv2D
           type: MLPModel
           dim_state: 13
-          run_path: iam-lab/water/1069skio #3kekiovw #17uqg8bw   #3m7xytf4 #171q1i5r #25vt1xe2 #29t8813n
-          acceptable_deviation: 0.6
+          run_path: iam-lab/water/38wy4lhi #1hgu8zxm #3kekiovw #17uqg8bw   #3m7xytf4 #171q1i5r #25vt1xe2 #29t8813n
+          acceptable_deviation: 0.2
 planner:
   type: MRAStar # MCTS, AStar
   timeout: 300
   max_search_depth: 50 #doesn't do anything
   MRAStar:
-    #ablation_type: anchor_only #anchor_only, comment out for none
+    ablation_type: anchor_only #anchor_only, comment out for none
     T_plan_max: 1
     T_exec_max: 60
     eps: 5
     num_models: 1
     wm: [10,1]
-    n_params_per_skill: 30
+    n_params_per_skill: 10
     use_gt_effects: False
     use_multiple_models : True
