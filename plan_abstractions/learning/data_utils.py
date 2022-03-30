@@ -751,6 +751,20 @@ def print_and_log_stats(gt_deviations, pred_deviations):
         print(f"{key} : {data[key]}")
     return data
 
+def data_restrict_training_set(dataset_data, max_num_data, skill_name):
+    """
+    Randomly selects max_num_data from the training tag of dataset_data. 
+    """
+    training_data = dataset_data["training"]
+    order = np.arange(len(training_data[1]))
+    random_order = np.random.permutation(order)
+    random_subset_idxs = random_order[:max_num_data]
+    random_subset = []
+    for arr in training_data:
+        random_subset.append(arr[random_subset_idxs])
+    dataset_data["training"] = random_subset
+
+
 
 def make_vector_datas(cfg, skill_name=None, tag_name="tags"):
     data_root = cfg["data"]["root"]

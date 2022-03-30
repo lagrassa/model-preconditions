@@ -1,7 +1,7 @@
 debug: False
 seed: 0
 tag: ${now:%Y-%m-%d-%H-%M-%S}
-upload_to_wandb: 1
+upload_to_wandb: 0
 original_cwd: ""
 train: 1
 do_pr_curve: 0
@@ -23,7 +23,7 @@ data:
     - pourbetterprecond_mde_train_val
 data_aug:
   state_ndim : 13
-  num_noise_aug : 200
+  num_noise_aug : 2 #200
   num_grid_aug : 0
   state_noise_mag: 0.005
   action_noise_mag: 0.005 #0.05 worked well before
@@ -77,7 +77,7 @@ wandb:
   init:
     entity: iam-lab
     project: water
-    group: alex/validation
+    group: alex/sample_efficiency_debug
   saver:
     upload: True
 
