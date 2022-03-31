@@ -14,11 +14,18 @@ fig = plt.figure()
 ax = fig.add_subplot(1,1,1)
 cfg = {'bar_width' : 0.25, 'bar_spacing':0.01}
 method_names = ["ours", "control"]
-data = {
-        "control":[],
-        "ours":[]
+if data_type == "plan_success":
+    data = {
+            "control":[8/50, 3/45.],
+            "ours":[30/50, 7/15.]
 
-        }
+            }
+else:
+    data = {
+            "control":[50/50., 45/50.],
+            "ours":[50/50.,15/50.]
+
+            }
 len_bars_per_task = 0.2
 for i, method_name in enumerate(method_names):
     mean_scores = data[method_name]
