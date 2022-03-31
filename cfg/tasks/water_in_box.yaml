@@ -3,12 +3,13 @@ task:
   #real_env: RealFrankaRodEnv
   type: WaterInBox
   goal:
-    volume_tol: 0.2
-    water_out_tol: 0.05
-    volume: 0.8
+    water_out_tol: 0.10
+    volume: 0.3
+    volume_up_tol : 0.5
+    volume_down_tol : 0.1
     randomize: True
     volume_ranges:
-      low:  [0.4]
-      high: [0.9]
+      low:  [0.2]
+      high: [0.4]
 
 

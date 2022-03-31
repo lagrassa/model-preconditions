@@ -59,7 +59,8 @@ class WaterInBox(BaseTask):
     def __init__(self, cfg, real_robot=False):
         super().__init__(cfg)
         self._water_out_tol = cfg["goal"]["water_out_tol"]
-        self._volume_tol = cfg["goal"]["volume_tol"]
+        self._volume_up_tol = cfg["goal"]["volume_up_tol"]
+        self._volume_down_tol = cfg["goal"]["volume_down_tol"]
         self._same_tol = 0.03
         self._setup_callbacks = [] # already in env self.add_real_drawer_to_env_cb]
         self._goal_volume = cfg["goal"]["volume"]
@@ -76,7 +77,7 @@ class WaterInBox(BaseTask):
         return self.distance_to_goal_state(pillar_state)
 
     def is_goal_state(self, vector_state):
-        if abs(vector_state[-2]-self._goal_volume) < self._volume_tol:
+        if vector_state[-2] < self._goal_volume + self._volume_up_tol and vector_state[-2] > self._goal_volume - self._volume_down_tol:
             water_in_total = vector_state[-1] + vector_state[-2]
             if (1-water_in_total) < self._water_out_tol:
                 return True
@@ -93,9 +94,9 @@ class WaterInBox(BaseTask):
         dx = abs(pos_target-vector_state[0]) #distance from the edge
         #dz = abs(vector_state[1] - vector_state[7])
         dz = 0 #min(abs(vector_state[1] - vector_state[7]), 2*vector_state[7])
-        #dist = abs(vector_state[-2]-self._goal_volume)
+        dist = abs(vector_state[-2]-self._goal_volume)
         #print("dx", dx)
-        return dx + dz
+        return dx + dz + dist
 
     def resample_goal(self, env=None):
         old_goal = np.copy(self._goal_volume)

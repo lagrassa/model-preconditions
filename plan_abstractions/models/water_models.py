@@ -136,7 +136,7 @@ class RFRModel:
         self._output_scaler = StandardScaler().fit(next_states)
         train_data = self._input_scaler.transform(data)
         train_labels = self._output_scaler.transform(next_states)
-        reg = RandomForestRegressor(max_depth=None, random_state=0)
+        reg = RandomForestRegressor(max_depth=20, random_state=0)
         reg.fit(train_data, train_labels)
         self._model = reg
         np.save(self._save_file, reg)
@@ -159,6 +159,8 @@ class RFRModel:
             cond = cond.reshape(1,-1)
         new_state_normalized = self._model.predict(self._input_scaler.transform(cond))[0]
         new_state = self._output_scaler.inverse_transform(new_state_normalized)
+        #print("amount out",new_state[-2:])
+        #print("Amount in containers", np.sum(new_state[-2:]))
         costs = [0.01]
         return {
             'end_states': [new_state],

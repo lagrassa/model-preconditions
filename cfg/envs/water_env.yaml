@@ -1,14 +1,14 @@
 env: WaterEnv2D
 original_cwd: ""
 
-n_init_states: 8
-n_parameters: 2
+n_init_states: 80
+n_parameters: 1
 # B/c there are many params per init state, a low n_max_exec + shuffle means we can get a higher init_state to param ratio
 shuffle: True
 n_max_execs: 1000 # use -1 to disable this cap.
-
+gui : 0
 save_cfg:
-    save_frames: True
+    save_frames: False
     save_video_dir: /home/lagrassa/plan_abstractions/baseline_videos2
     img_size: 360
 

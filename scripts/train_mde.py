@@ -28,6 +28,7 @@ def train_mde(max_num_data=None, cfg=None):
     #cfg = YamlConfig("cfg/train/mde_train/rigid_12.yaml")
     if cfg is None:
         cfg = YamlConfig("cfg/train/mde_train/learned_for_pour.yaml")
+        #cfg = YamlConfig("cfg/train/mde_train/rigid_12.yaml")
     log = logging.getLogger(__name__)
     cfg['original_cwd'] = os.getcwd() #hydra.utils.get_original_cwd()
     set_seed(cfg['seed'])

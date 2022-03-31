@@ -113,10 +113,10 @@ class MLP(pl.LightningModule):
             last_layer = nn.Linear(N, 1)
         self.layers = nn.Sequential(
             nn.Linear(input_dim, N),
-            nn.ReLU(),
+            nn.LeakyReLU(),
             nn.Linear(N, N),
             nn.Dropout(0.1),
-            nn.ReLU(),
+            nn.LeakyReLU(),
             last_layer
         )
         self.mse = nn.MSELoss()
@@ -250,8 +250,8 @@ class GPRModel(SKLearnModel):
     def __init__(self, cfg):
         self._sklearn_model_cls = GaussianProcessRegressor
         super().__init__(cfg)
-        kernel_list = [Matern(length_scale_bounds=[0.01, 1]), Matern(length_scale_bounds=[0.1, 5]),
-                       Matern(length_scale_bounds=[0.01, 1], nu=2.5)]
+        kernel_list = [Matern(length_scale_bounds=[0.1, 1]), Matern(length_scale_bounds=[0.05, 5]),
+                       Matern(length_scale_bounds=[0.5, 1], nu=2.5)]
         self._random_grid = {'kernel': kernel_list}
 
     def _train(self, cfg, states_and_parameters, deviations, states_and_parameters_validation=None,

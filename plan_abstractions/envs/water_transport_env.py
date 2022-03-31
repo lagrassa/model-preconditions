@@ -31,6 +31,7 @@ class WaterEnv2D(BaseEnv):
         env_kwargs['save_cached_states'] = False
         env_kwargs['num_variations'] = 1
         env_kwargs['render'] = 1#True
+        env_kwargs["action_repeat"] = 2
         env_kwargs['headless'] = not cfg['gui']
         self._n_envs=1
         self._env_idxs=[0]
@@ -65,7 +66,7 @@ class WaterEnv2D(BaseEnv):
     def get_sem_state(self, should_reset_to_viewable=False):
         assert not isinstance(self._saved_data[0][0][0], np.ndarray)
         state_vector = self._saved_data[0][0]
-        return state_vector[np.array([0,1,-1])]
+        return state_vector #[np.array([0,1,-1])]
 
     def reset(self, n_steps=2):
         self._scene.reset()

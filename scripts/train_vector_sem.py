@@ -11,10 +11,10 @@ cfg = YamlConfig("cfg/train/train_linear_water_vector.cfg")
 processed_datas_train = make_vector_datas(cfg, skill_name=cfg["skill_name"], tag_name="tags")
 processed_datas_val = make_vector_datas(cfg, skill_name=cfg["skill_name"], tag_name="val_tags")
 init_state_data_train, param_data_train, end_state_data_train = processed_datas_train["init_states"], processed_datas_train["params"], processed_datas_train["end_states"]
-#init_state_data_val, param_data_val, end_state_data_val = processed_datas_val["init_states"], processed_datas_val["params"], processed_datas_val["end_states"]
-init_state_data_val = np.load("/home/lagrassa/plan_abstractions/good_control_init_states.npy")
-end_state_data_val = np.load("/home/lagrassa/plan_abstractions/good_control_end_states.npy")
-param_data_val = np.load("/home/lagrassa/plan_abstractions/good_control_params.npy")
+init_state_data_val, param_data_val, end_state_data_val = processed_datas_val["init_states"], processed_datas_val["params"], processed_datas_val["end_states"]
+#init_state_data_val = np.load("/home/lagrassa/plan_abstractions/good_control_init_states.npy")
+#end_state_data_val = np.load("/home/lagrassa/plan_abstractions/good_control_end_states.npy")
+#param_data_val = np.load("/home/lagrassa/plan_abstractions/good_control_params.npy")
 
 #init_state_data_train = init_state_data_train[:, :2]
 #end_state_data_train = end_state_data_train[:, :2]

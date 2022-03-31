@@ -2,7 +2,10 @@ import numpy as np
 
 from plan_abstractions.skills.skills import Skill
 from plan_abstractions.controllers.water_controllers import WaterTransportController, PourController
-
+NUM_X = 3
+NUM_Y = 3
+EP = -0.00112
+np.random.seed(133)
 
 class WaterTransport2D(Skill):
 
@@ -10,7 +13,8 @@ class WaterTransport2D(Skill):
         super().__init__(**kwargs)
         self.param_shape = (2,)
         self._terminate_on_timeout=True
-        self.total_horizon = 10
+        self._termination_buffer_time=30
+        self.total_horizon = 6
         self._position_tol = 0.005
         self._no_water = 0.05
 
@@ -32,18 +36,33 @@ class WaterTransport2D(Skill):
             height_target = state[7]
             glass_x = state[0]
             glass_distance = state[6] - state[0]
-            noisy_object_centric_x = glass_distance - glass_x + np.random.uniform(low=0.21, high=0.51)
-            noisy_object_centric_y = height_target + np.random.uniform(low=0.091, high=0.31)
+            noisy_object_centric_x = glass_distance - glass_x + np.random.uniform(low=0.2, high=0.5)
+            noisy_object_centric_y = height_target + np.random.uniform(low=0.08, high=0.29)
             yield np.array([noisy_object_centric_x, noisy_object_centric_y])
+            """
+            for delta_x in np.linspace(0.51, 0.21, NUM_X):
+                for delta_y in np.linspace(0.091, 0.031, NUM_Y):
+                    object_centric_x = glass_distance - glass_x + delta_x
+                    object_centric_y = height_target + delta_y
+                    yield np.array([object_centric_x, object_centric_y])
+
+            """
 
     def _gen_random_parameters(self, env, state):
         while True:
-            #random_dist = np.random.uniform(low=0.1, high=0.2)
-            random_dist_x = np.random.uniform(low=0.018, high=0.19)
-            random_dist_z = np.random.uniform(low=0.019, high=0.19)
+            random_dist = np.random.uniform(low=0.1, high=0.2)
+            random_dist_x = np.random.uniform(low=0.018+EP, high=0.25+EP)
+            random_dist_z = np.random.uniform(low=0.014+EP, high=0.25+EP)
             random_dist = np.array([random_dist_x, random_dist_z])
             curr_state = state[0:2]
             yield curr_state + random_dist
+            """
+            for delta_x in np.linspace(0.02, 0.2, NUM_X): #ok not technically random but more generic
+                for delta_y in np.linspace(0.02, 0.2, NUM_Y):
+                    random_dist = np.array([delta_x, delta_y])
+                    curr_state = state[0:2]
+                    yield curr_state + random_dist
+            """
 
     def _gen_relation_centric_parameters(self, env, state):
         # Should be irrelevant, raise an error if sampled
@@ -62,7 +81,7 @@ class WaterTransport2D(Skill):
         for env_idx, initial_state in enumerate(initial_states):
             controller = WaterTransportController()
             goal_pos = parameters[env_idx]
-            info_plan = controller.plan(curr_pos = initial_state[0:2], goal_pos = goal_pos, total_horizon = total_horizon)
+            info_plan = controller.plan(curr_pos = initial_state[0:2], goal_pos = goal_pos, total_horizon = self.total_horizon)
             controllers.append(controller)
             info_plans.append(info_plan)
         return controllers, info_plans
@@ -72,7 +91,7 @@ class WaterTransport2D(Skill):
         if controller is not None and np.linalg.norm(internal_state[0:2] - controller.goal_pos) <  self._position_tol:
             return True
         if self._terminate_on_timeout and controller is not None:
-            timeout = t >= controller.horizon
+            timeout = t >= controller.horizon + self._termination_buffer_time
         return timeout
 
 
@@ -83,14 +102,14 @@ class Pour(Skill):
         super().__init__(**kwargs)
         self.param_shape = (1,)
         self._terminate_on_timeout=True
-        self._termination_buffer_time=20
-        self.total_horizon = 10
+        self._termination_buffer_time=30
+        self.total_horizon = 50
         self._position_tol = 0.005
         self._no_water = 0.05
-        self._min_above_dist = 0.09
-        self._target_overlap = 0.36
-        self._max_volume = 0.8 #this should be a parameter
-        self._min_near_cup_edge_dist = 0.06
+        self._min_above_dist = 0.15
+        self._target_overlap = 0.356
+        self._max_volume = 0.5 #this should be a parameter
+        self._min_near_cup_edge_dist = 0.055
 
     def pillar_state_to_internal_state(self, state):
         return state
@@ -125,6 +144,7 @@ class Pour(Skill):
         while True:
             #random_dist = np.random.uniform(low=0.1, high=0.2)
             #random_theta = np.random.uniform(low=0.9, high=3.1)
+            #for theta in np.linspace(0.8, 2.45, NUM_X*NUM_Y):
             random_theta = np.random.uniform(low=0.78, high=2.45)
             yield np.array([random_theta])
 
@@ -139,13 +159,13 @@ class Pour(Skill):
         assert env_idx == 0
         env.save_action(action)
 
-    def make_controllers(self, initial_states, parameters, T_plan_max=1, t=0, dt=0.01,total_horizon=20, real_robot=False, avoid_obstacle_height=True):
+    def make_controllers(self, initial_states, parameters, T_plan_max=1, t=0, dt=0.01,real_robot=False, avoid_obstacle_height=True):
         info_plans = []
         controllers = []
         for env_idx, initial_state in enumerate(initial_states):
             controller = PourController()
             goal_angle = parameters[env_idx][0]
-            info_plan = controller.plan(curr_pos = initial_state[:2], curr_angle = initial_state[2], goal_angle = goal_angle, max_volume=self._max_volume, total_horizon = total_horizon)
+            info_plan = controller.plan(curr_pos = initial_state[:2], curr_angle = initial_state[2], goal_angle = goal_angle, max_volume=self._max_volume, total_horizon = self.total_horizon)
             controllers.append(controller)
             info_plans.append(info_plan)
         return controllers, info_plans

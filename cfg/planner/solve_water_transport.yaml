@@ -28,7 +28,7 @@ max_leaf_nodes: 3
 max_search_depth: 3
 
 save_transition_cfg:
-    dirpath: /home/lagrassa/plan_abstractions/two_d_water_transport1
+    dirpath: /home/lagrassa/plan_abstractions/slow_water_transport
 
 
 # these are here in case collect_skill_data_via_planner.py is ran outside of run_iterative_training.sh
@@ -54,27 +54,27 @@ skills:
         sem_cfg:
           type: RigidModel #DrawerAndRobot #SEMSimpleFreeSpace # SEMMLP
           env: WaterEnv2D #actually correct
-          dim_state: 3
+          dim_state: 13
           pillar_state_convert: False
         deviation_cfg:
-          use_deviation_model: 1
-          state_and_param_to_features: extract_first_and_last
+          use_deviation_model: 0
+          state_and_param_to_features: identity #extract_first_and_last
           env: WaterEnv2D
-          type: MLPModel
+          type: GPRModel #MLPModel
           dim_state: 13
-          run_path: iam-lab/water/3mr4fqu5 #1febpe4y #171q1i5r #25vt1xe2 #29t8813n
-          acceptable_deviation: 0.01
+          run_path: iam-lab/water/3j1u6h9w #27gwsug1 #2q4laoeu #1othh16g #3mr4fqu5 #1febpe4y #171q1i5r #25vt1xe2 #29t8813n
+          acceptable_deviation: 0.15
 planner:
   type: MRAStar # MCTS, AStar
-  timeout: 300
+  timeout: 20
   max_search_depth: 50 #doesn't do anything
   MRAStar:
-    #ablation_type: anchor_only #anchor_only, comment out for none
+    ablation_type: anchor_only #anchor_only, comment out for none
     T_plan_max: 1
     T_exec_max: 800
-    eps: 5
+    eps: 0.5
     num_models: 1
     wm: [10,1]
-    n_params_per_skill: 50
+    n_params_per_skill: 30
     use_gt_effects: False
     use_multiple_models : True

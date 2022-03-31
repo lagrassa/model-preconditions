@@ -6,10 +6,11 @@ original_cwd: ""
 train: 1
 do_pr_curve: 0
 sample_complexity_test: 0
+skill_name : WaterTransport2D
 
 mde_stats_path: /home/lagrassa/git/model-preconditions/data/mde_stats_final
 dataset_save_loc: /home/lagrassa/git/model-preconditions/data/dataset_linear.npy #helpful for sim models
-
+model_class: GPRModel #MLPModel
 data:
   mock: False
   #root: /home/jacky/plan_abstractions/skill_data/LQRWaypointsXYZYawFranka
@@ -17,22 +18,26 @@ data:
   root: /home/lagrassa/plan_abstractions
   val_root: /home/lagrassa/plan_abstractions
   tags:
-    - two_d_water_transport1
+    #- pour_model_slow_mde_train
+    #- slow_water_transport
+    - water_in_box_faster
   val_tags:
-    - two_d_water_transport1_val
+    #- slow_water_transport_val
+    - water_in_box_faster_val
 data_aug:
-  num_noise_aug : 3000
+  state_ndim : 13
+  num_noise_aug : 2
   num_grid_aug : 0
-  state_noise_mag: 0.04
+  state_noise_mag: 0.02
   action_noise_mag: 0.02 #0.05 worked well before
 
 
 shared_info:
   c1: 3
   c2: 1
-  distance_function: xy_and_water_out
+  distance_function: xy_and_water_out_and_water_in
   use_sim_model: False
-  state_and_param_to_features: extract_first_and_last
+  state_and_param_to_features: extract_first_and_last #identity
   sem_cfg:
     type: RigidModel 
     env: WaterEnv2D #actually correct
@@ -41,14 +46,14 @@ shared_info:
     model_cfg: 
       load: False
   train_cfg:
-    lr: 0.005 #0.005 worked well
-    max_epochs: 500
-    N: 16
+    lr: 0.003 #0.005 worked well
+    max_epochs: 50
+    N: 32
     batch_size: 128
-    weight_decay: 1e-5 #1e-4 #0.005 worked well
+    weight_decay: 1e-4 #1e-4 #0.005 worked well
 
 
-test_size: 0.25
+test_size: 0.02
 
 precision_save_dir : /home/lagrassa/git/plan-abstractions/data/pr_curves
 deviation_cfg:
