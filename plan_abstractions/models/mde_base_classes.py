@@ -11,6 +11,7 @@ from plan_abstractions.utils import dists_and_actions_from_states_and_parameters
 class DeviationModel():
     def __init__(self, cfg):
         from ..envs import FrankaRodEnv, FrankaDrawerEnv, WaterEnv2D, WaterEnv3D
+        self.with_conf = False
         if 'env' in cfg.keys():
             self._env_cls = eval(cfg["env"])
         if 'data' in cfg.keys():
@@ -63,7 +64,7 @@ class DeviationModel():
             assert state_ndim is not None
         if not already_transformed_state_vector:
             if self._data_dims is not None:
-                input_state_and_parameters = np.hstack([input_state_and_parameters[:,self._data_dims], input_state_and_parameters[:,state_ndim:]])
+                input_state_and_parameters = np.hstack([input_state_and_parameters[:,:state_ndim][:,self._data_dims], input_state_and_parameters[:,state_ndim:]])
                 state_ndim = len(self._data_dims)
             state_and_parameters = self._state_and_param_to_features(input_state_and_parameters,state_ndims=state_ndim)
         else:
@@ -128,6 +129,10 @@ class SKLearnModel(DeviationModel):
         self._model = rf_random
 
     def _predict(self, states_and_parameters):
+        if self.with_conf:
+            mean, std = self._model.best_estimator_.predict(states_and_parameters, return_std=True)
+            scale = 1 #1.96
+            return mean + scale*std
         return self._model.predict(states_and_parameters)
 
     def _load_model(self, filename):

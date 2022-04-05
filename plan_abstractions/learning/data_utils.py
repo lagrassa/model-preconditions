@@ -717,6 +717,7 @@ def eval_model(deviation_model, train_states_and_params, train_deviations,
         plt.ylabel("predicted d")
         plt.show()
     plt.savefig("test_devs_dist_more.png", bbox_inches="tight")
+    import ipdb; ipdb.set_trace()
     train_stats = print_and_log_stats(train_deviations, pred_train_deviations)
     logger.info("Validation deviation error")
     validation_stats = print_and_log_stats(validation_deviations, pred_validation_deviations)

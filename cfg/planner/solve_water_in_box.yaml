@@ -29,7 +29,7 @@ max_search_depth: 3
 
 save_transition_cfg:
     #dirpath: /home/lagrassa/plan_abstractions/water_in_box_test_dist #water_in_box_faster_val #pourbetterprecond
-    dirpath: /home/lagrassa/plan_abstractions/tmp #water_in_box_faster_dmde_val2 #water_in_box_faster_dmde_val #water_in_box_faster_val #pourbetterprecond
+    dirpath: /home/lagrassa/plan_abstractions/water_in_box_faster_dmde_val3_test #water_in_box_faster_dmde_val #water_in_box_faster_val #pourbetterprecond
 
 
 # these are here in case collect_skill_data_via_planner.py is ran outside of run_iterative_training.sh
@@ -58,14 +58,14 @@ skills:
           dim_state: 13
           pillar_state_convert: False
         deviation_cfg:
-          use_deviation_model: 1
+          use_deviation_model: 0
           state_and_param_to_features: extract_first_and_last 
           env: WaterEnv2D
           type: GPRModel
           dim_state: 13
           data_dims : [0,1,2,-2,-1]
-          run_path: iam-lab/water/n8dsvuoe #1muhj6mw #1egoqgc6 #2sv61qib #lotjz68a #381ttpnd #35og1gu2 #uxp8tqhx #171q1i5r #25vt1xe2 #29t8813n
-          acceptable_deviation: 0.04
+          run_path: iam-lab/water/1s84cmzr #n8dsvuoe #1muhj6mw #1egoqgc6 #2sv61qib #lotjz68a #381ttpnd #35og1gu2 #uxp8tqhx #171q1i5r #25vt1xe2 #29t8813n
+          acceptable_deviation: 0.10
   Pour:
     use: True
     cache_dir: /tmp
@@ -95,8 +95,8 @@ skills:
           type: GPRModel
           data_dims : [0,1,2,-2,-1]
           dim_state: 13
-          run_path: iam-lab/water/n8dsvuoe #15gumm46 #22uzemon #1k1gzutd #1st4lb3f #2xn2ot2b #3ttvcmhc #38wy4lhi #1hgu8zxm #3kekiovw #17uqg8bw   #3m7xytf4 #171q1i5r #25vt1xe2 #29t8813n
-          acceptable_deviation: 0.20
+          run_path: iam-lab/water/ik0wa0e5 #15gumm46 #22uzemon #1k1gzutd #1st4lb3f #2xn2ot2b #3ttvcmhc #38wy4lhi #1hgu8zxm #3kekiovw #17uqg8bw   #3m7xytf4 #171q1i5r #25vt1xe2 #29t8813n
+          acceptable_deviation: 0.30
 planner:
   type: MRAStar # MCTS, AStar
   timeout: 80
@@ -108,6 +108,6 @@ planner:
     eps: 2
     num_models: 1
     wm: [10,1]
-    n_params_per_skill: 50
+    n_params_per_skill: 100
     use_gt_effects: False
     use_multiple_models : True

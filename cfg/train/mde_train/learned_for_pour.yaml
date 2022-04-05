@@ -1,7 +1,7 @@
 debug: False
 seed: 0
 tag: ${now:%Y-%m-%d-%H-%M-%S}
-upload_to_wandb: 0
+upload_to_wandb: 1
 original_cwd: ""
 train: 1
 do_pr_curve: 0
@@ -22,7 +22,7 @@ data:
     - water_in_box_faster_dmde
   val_tags:
     #- water_in_box_faster_dmde_val
-    - water_in_box_faster_dmde_val2
+    - water_in_box_faster_dmde_val3
 data_aug:
   state_ndim : 13
   num_noise_aug : 0 #200
