@@ -9,7 +9,7 @@ n_max_execs: 1000 # use -1 to disable this cap.
 gui: 0 #False
 
 save_cfg:
-    save_frames: True
+    save_frames: False
     save_video_dir: /home/lagrassa/plan_abstractions/pour_data_ours
     img_size: 720
 

@@ -363,7 +363,7 @@ def execute_plan(env, plan_to_execute, skills, task, T_plan_max, T_exec_max, set
         skill_exec_data["params"] = parameter_matrix.copy()
         skill_exec_data["skill_name"] = skill.__class__.__name__
         plan_exec_data['skill_exec_data'].append(skill_exec_data)
-    env.save_video() 
+    #env.save_video() 
     for env_idx, state in enumerate([env.get_sem_state()]):
         plan_exec_data['reached_goal'][env_idx] = task.is_goal_state(state)
 

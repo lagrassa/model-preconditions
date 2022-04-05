@@ -27,8 +27,8 @@ logger.setLevel('INFO')
 def train_mde(max_num_data=None, cfg=None):
     #cfg = YamlConfig("cfg/train/mde_train/rigid_12.yaml")
     if cfg is None:
-        cfg = YamlConfig("cfg/train/mde_train/learned_for_pour.yaml")
-        #cfg = YamlConfig("cfg/train/mde_train/rigid_12.yaml")
+        #cfg = YamlConfig("cfg/train/mde_train/learned_for_pour.yaml")
+        cfg = YamlConfig("cfg/train/mde_train/rigid_12.yaml")
     log = logging.getLogger(__name__)
     cfg['original_cwd'] = os.getcwd() #hydra.utils.get_original_cwd()
     set_seed(cfg['seed'])
@@ -42,8 +42,9 @@ def train_mde(max_num_data=None, cfg=None):
     if "dataset_file_cache" in cfg.keys():
         dataset_data = np.load(cfg["dataset_file_cache"], allow_pickle=True).item()
     else:
-        processed_datas_train = make_vector_datas(cfg, skill_name=cfg.get("skill_name", None), tag_name="tags")
-        processed_datas_val = make_vector_datas(cfg,skill_name=cfg.get("skill_name", None), tag_name="val_tags")
+        only_idxs = cfg["shared_info"].get("data_dims", None)
+        processed_datas_train = make_vector_datas(cfg, skill_name=cfg.get("skill_name", None), tag_name="tags", only_idxs=only_idxs)
+        processed_datas_val = make_vector_datas(cfg, skill_name=cfg.get("skill_name", None), tag_name="val_tags", only_idxs=only_idxs)
         if 'feature_type' not in cfg.keys() and 'state_and_param_to_features' not in cfg['shared_info'].keys(): #Backwards compat. 
             feature_type = "dists_and_action_only"
             state_and_param_to_features=None

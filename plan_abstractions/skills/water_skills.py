@@ -4,8 +4,8 @@ from plan_abstractions.skills.skills import Skill
 from plan_abstractions.controllers.water_controllers import WaterTransportController, PourController
 NUM_X = 3
 NUM_Y = 3
-EP = -0.00112
-np.random.seed(133)
+EP = 0.0011
+np.random.seed(84)
 
 class WaterTransport2D(Skill):
 
@@ -14,7 +14,7 @@ class WaterTransport2D(Skill):
         self.param_shape = (2,)
         self._terminate_on_timeout=True
         self._termination_buffer_time=30
-        self.total_horizon = 6
+        self.total_horizon = 8
         self._position_tol = 0.005
         self._no_water = 0.05
 
@@ -103,7 +103,7 @@ class Pour(Skill):
         self.param_shape = (1,)
         self._terminate_on_timeout=True
         self._termination_buffer_time=30
-        self.total_horizon = 50
+        self.total_horizon = 80
         self._position_tol = 0.005
         self._no_water = 0.05
         self._min_above_dist = 0.15
@@ -119,13 +119,14 @@ class Pour(Skill):
         if state[-1] < self._no_water:
             #print("Water full constraint violated")
             return False
-        height_control_cup = state[1]
+        z_control_cup = state[1]
         height_target = state[7]
         glass_x = state[0]
+        height_control_cup = state[4]
         pos_control = state[0] #x coordinate of box, starts at 0
         glass_distance = state[6]-state[0] 
         pos_target = glass_distance-glass_x  + self._target_overlap
-        if height_control_cup - height_target < self._min_above_dist:
+        if z_control_cup - height_target < height_control_cup:
             return False
         if abs(pos_control-pos_target) > self._min_near_cup_edge_dist:
             return False
@@ -145,7 +146,7 @@ class Pour(Skill):
             #random_dist = np.random.uniform(low=0.1, high=0.2)
             #random_theta = np.random.uniform(low=0.9, high=3.1)
             #for theta in np.linspace(0.8, 2.45, NUM_X*NUM_Y):
-            random_theta = np.random.uniform(low=0.78, high=2.45)
+            random_theta = np.random.uniform(low=1.2, high=2.0)
             yield np.array([random_theta])
 
     def _gen_relation_centric_parameters(self, env, state):

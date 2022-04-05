@@ -19,6 +19,8 @@ class DeviationModel():
             self._sem_state_obj_names = cfg["sem_state_obj_names"]
         if 'state_and_param_to_features' in cfg.keys():
             state_and_param_to_features = eval(cfg['state_and_param_to_features'])
+        if "data_dims" in cfg.keys():
+            self._data_dims = np.array(cfg["data_dims"])
         else:
             state_and_param_to_features = dists_and_actions_from_states_and_parameters
         self._is_graph_model = False
@@ -60,6 +62,9 @@ class DeviationModel():
         if not already_transformed_state_vector:
             assert state_ndim is not None
         if not already_transformed_state_vector:
+            if self._data_dims is not None:
+                input_state_and_parameters = np.hstack([input_state_and_parameters[:,self._data_dims], input_state_and_parameters[:,state_ndim:]])
+                state_ndim = len(self._data_dims)
             state_and_parameters = self._state_and_param_to_features(input_state_and_parameters,state_ndims=state_ndim)
         else:
             state_and_parameters = input_state_and_parameters

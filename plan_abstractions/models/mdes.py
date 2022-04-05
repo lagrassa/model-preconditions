@@ -2,7 +2,7 @@ import torch
 from pytorch_lightning.loggers import WandbLogger
 import torch as F
 from sklearn.ensemble import RandomForestRegressor as RFR
-from sklearn.gaussian_process.kernels import Matern
+from sklearn.gaussian_process.kernels import Matern, WhiteKernel
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.linear_model import LinearRegression
@@ -250,14 +250,14 @@ class GPRModel(SKLearnModel):
     def __init__(self, cfg):
         self._sklearn_model_cls = GaussianProcessRegressor
         super().__init__(cfg)
-        kernel_list = [Matern(length_scale_bounds=[0.1, 1]), Matern(length_scale_bounds=[0.05, 5]),
-                       Matern(length_scale_bounds=[0.5, 1], nu=2.5)]
+        kernel_list = [Matern(length_scale=0.5, nu=2.5, length_scale_bounds=[0.1, 0.9])+WhiteKernel(noise_level=0.1, noise_level_bounds=(0.01,0.1))] #, Matern(length_scale_bounds=[0.08, 5])+WhiteKernel(noise_level_bounds=(1e-3, 0.1)),
+                       #Matern(length_scale_bounds=[0.5, 1], nu=2.5)+WhiteKernel(noise_level_bounds=(1e-3, 0.2))]
         self._random_grid = {'kernel': kernel_list}
 
     def _train(self, cfg, states_and_parameters, deviations, states_and_parameters_validation=None,
                deviations_validation=None, rescale=True, wandb_experiment=None):
         # self._model = GaussianProcessRegressor(kernel=Matern(length_scale_bounds= [0.01, 1]))
-        kwargs = {'n_restarts_optimizer': 5}
+        kwargs = {'n_restarts_optimizer': 25}
         super()._train(cfg, states_and_parameters, deviations,
                        states_and_parameters_validation=states_and_parameters_validation,
                        deviations_validation=deviations_validation, rescale=rescale, wandb_experiment=wandb_experiment,

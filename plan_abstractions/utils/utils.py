@@ -742,13 +742,14 @@ def dists_and_actions_from_states_and_parameters(states_and_parameters, state_nd
 def identity(states_and_parameters, state_ndims=None):
     return states_and_parameters
 
-def extract_first_and_last(states_and_parameters, state_ndims=13, only_dists=True):
+def extract_first_and_last(states_and_parameters, state_ndims=5, only_dists=True):
     """
     Pretty special purpose to the water world where the first and last are the most important. eventually this
     should be learned
     """
-    first_only = states_and_parameters[:,0:2]
-    last_only = states_and_parameters[:,state_ndims-1].reshape(-1,1)
+    assert states_and_parameters.shape[1] != 13
+    first_only = states_and_parameters[:,0:3]
+    last_only = states_and_parameters[:,state_ndims-2:state_ndims]
     parameters = states_and_parameters[:, state_ndims:]
     state_transformed_and_actions = np.hstack([first_only, last_only, parameters])
     return state_transformed_and_actions

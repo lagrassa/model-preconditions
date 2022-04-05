@@ -14,7 +14,7 @@ class WaterTransportController(BaseController):
 
     def __init__(self):
         super().__init__()
-        self._kp = 3 #2 was safe
+        self._kp = 2.7 #2 was safe
         self._end_buffer = 10
 
     def _plan(self, curr_pos, goal_pos, total_horizon=None):
@@ -48,8 +48,9 @@ class PourController(WaterTransportController):
     def _plan(self, curr_pos, curr_angle, goal_angle, max_volume, total_horizon=None):
         self._start_pos = curr_pos
         self.start_angle = curr_angle
-        third_traj = np.linspace(curr_angle, goal_angle, int(total_horizon/3))[1:]
-        self._traj =  np.hstack([third_traj, np.ones(int(total_horizon/3))*goal_angle, third_traj[::-1]])
+        fourth_traj_len = int(total_horizon/4)
+        fourth_traj = np.linspace(curr_angle, goal_angle, fourth_traj_len)
+        self._traj =  np.hstack([fourth_traj, np.ones(fourth_traj_len)*goal_angle, fourth_traj[::-1], np.ones(fourth_traj_len)*self.start_angle])
         self.goal_angle =  goal_angle
         self._max_volume = max_volume
         self._reverse = False

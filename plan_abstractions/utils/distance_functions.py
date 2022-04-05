@@ -12,3 +12,8 @@ def xy_and_water_out_and_water_in(state1, state2):
     water_in_difference = abs(state1[-2]-state2[-2])
     return pos_diff + (water_out_difference + water_in_difference)
 
+def xytheta_and_water_out_and_water_in(state1, state2):
+    pos_diff = np.linalg.norm(state1[:3]-state2[:3])
+    water_out_difference = abs(state1[-1]-state2[-1])
+    water_in_difference = abs(state1[-2]-state2[-2])
+    return pos_diff + (water_out_difference + water_in_difference)

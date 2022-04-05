@@ -414,7 +414,7 @@ class Skill(ABC):
         Returns:
             Dict w/ data of all parallel skill executions
         """
-        print("Executing", self)
+        print("Executing", self, parameters)
         assert len(initial_states) <= env.n_envs
         assert not save_low_level_transitions
         env_idxs = np.arange(len(initial_states))

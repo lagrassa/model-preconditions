@@ -80,7 +80,7 @@ class WaterEnv2D(BaseEnv):
         self._saved_action = action
 
     def step(self):
-        self._saved_data = self._scene.step(self._saved_action, record_continuous_video=True, img_size=self._save_cfg["img_size"])
+        self._saved_data = self._scene.step(self._saved_action, record_continuous_video=self._save_frames, img_size=self._save_cfg["img_size"])
         _, _, _, info = self._saved_data
         if self._save_frames:
             self.frames.extend(info['flex_env_recorded_frames'])

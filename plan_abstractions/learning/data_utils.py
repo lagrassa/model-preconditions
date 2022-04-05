@@ -126,7 +126,6 @@ def extract_model_deviations_from_processed_datas(cfg, processed_datas, skill, e
         deviations.append(deviation)
     states_and_parameters = np.hstack([init_states, parameters])
     deviations = np.array(deviations)
-    import ipdb; ipdb.set_trace()
     ##plt.scatter(states_and_parameters[:,-3], deviations)
     #plt.show()
     if do_data_aug:
@@ -695,14 +694,29 @@ def eval_model(deviation_model, train_states_and_params, train_deviations,
     stats_dict={key: {} for key in data_type_keys}
     pred_validation_deviations = deviation_model.predict(validation_states_and_params, already_transformed_state_vector=True)
     pred_train_deviations = deviation_model.predict(train_states_and_params, already_transformed_state_vector=True)
+    train_with_noise = train_states_and_params.copy()
+
+    noise_mag = 0.01
+    train_with_noise[:,0] += np.random.uniform(low=-noise_mag, high=noise_mag, size=train_with_noise[:0])
+    train_with_noise[:,1] += np.random.uniform(low=-4*noise_mag, high=noise_mag, size=train_with_noise[:0])
+    train_with_noise[:,-2] += np.random.uniform(low=-4*noise_mag, high=4*noise_mag, size=train_with_noise[:0])
+    train_with_noise[:,-3] += np.random.uniform(low=-4*noise_mag, high=4*noise_mag, size=train_with_noise[:0])
+    train_with_noise[:,-1] += np.random.uniform(low=-noise_mag, high=noise_mag, size=train_with_noise[:0])
+    pred_train_deviations_with_noise = deviation_model.predict(train_with_noise, already_transformed_state_vector=True)
     pred_test_deviations = deviation_model.predict(test_states_and_params, already_transformed_state_vector=True)
-    import ipdb; ipdb.set_trace()
+    error_test = test_deviations.flatten() - pred_test_deviations.flatten()
     plot=True
+    plt.rcParams['font.size'] = 20
     if plot:
-        plt.scatter(train_deviations, pred_train_deviations)
+        plt.scatter(train_deviations, pred_train_deviations, label="og")
+        plt.scatter(train_deviations, pred_train_deviations_with_noise, label="noise")
+        plt.legend()
         plt.show()
-        plt.scatter(test_deviations, pred_test_deviations)
+        plt.scatter(test_deviations, pred_test_deviations, color="black")
+        plt.xlabel("d")
+        plt.ylabel("predicted d")
         plt.show()
+    plt.savefig("test_devs_dist_more.png", bbox_inches="tight")
     train_stats = print_and_log_stats(train_deviations, pred_train_deviations)
     logger.info("Validation deviation error")
     validation_stats = print_and_log_stats(validation_deviations, pred_validation_deviations)
@@ -774,7 +788,7 @@ def data_restrict_training_set(dataset_data, max_num_data, skill_name):
 
 
 
-def make_vector_datas(cfg, skill_name=None, tag_name="tags"):
+def make_vector_datas(cfg, skill_name=None, tag_name="tags", only_idxs = None):
     data_root = cfg["data"]["root"]
     folder_name = cfg["data"][tag_name][0]
     data_dir = os.path.join(data_root, folder_name)
@@ -788,4 +802,6 @@ def make_vector_datas(cfg, skill_name=None, tag_name="tags"):
     data_combined = {}
     for key in data_list[0].keys(): #assumes same keys
         data_combined[key] = np.vstack([dataset[key] for dataset in data_list])
+        if "state" in key and only_idxs is not None:
+            data_combined[key] = data_combined[key][:,np.array(only_idxs)]
     return data_combined

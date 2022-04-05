@@ -20,7 +20,7 @@ class RigidModel():
     def predict(self, state, action, unnormalized=False, return_np=False):
         new_state = state.copy()
         new_state[0:2] = action.copy()
-        assert len(new_state) == 13
+        #assert len(new_state) == 13
         #costs = [np.linalg.norm(state[:2]-new_state[:2])]
         costs = [1]
         if return_np:
@@ -50,10 +50,10 @@ class PourConstantModel:
 
     def predict(self, state, action, unnormalized=False, return_np=0):
         new_state = state.copy()
-        new_state[-1] = 0.9
-        new_state[-2] = 0.1
+        new_state[-1] = 0.5
+        new_state[-2] = 0.5
         assert len(new_state) == 13
-        costs = [0.01] #some small cost for turning: not big since you cant really compare angles
+        costs = [1] #some small cost for turning: not big since you cant really compare angles
         return {
             'end_states': [new_state],
             'T_exec': [1],
@@ -103,7 +103,7 @@ class LinearOutModel:
         return {
             'end_states': [new_state],
             'T_exec': [1],
-            'costs': [0.01],
+            'costs': [1],
             'info_plan': {
                 'T_plan': [1]
             }
@@ -113,6 +113,7 @@ class RFRModel:
     def __init__(self, model_cfg=None, dim_state = None):
         self._dim_state = dim_state
         self._save_file = model_cfg["save_file"]
+        self._data_dims = np.array(model_cfg["data_dims"])
         if model_cfg["load"]:
             self._model = np.load(self._save_file, allow_pickle=True)
             input_scaler_fn, output_scaler_fn = self._get_scaler_filenames()
@@ -126,6 +127,10 @@ class RFRModel:
         return self._dim_state
 
     @property
+    def data_dims(self):
+        return self._data_dims
+
+    @property
     def fixed_input_size(self):
         return True
 
@@ -136,7 +141,8 @@ class RFRModel:
         self._output_scaler = StandardScaler().fit(next_states)
         train_data = self._input_scaler.transform(data)
         train_labels = self._output_scaler.transform(next_states)
-        reg = RandomForestRegressor(max_depth=20, random_state=0)
+        #reg = RandomForestRegressor(max_depth=20, random_state=0)
+        reg = RandomForestRegressor(max_depth=15, random_state=0, n_estimators=200)#, min_samples_leaf=2, min_samples_split=2)
         reg.fit(train_data, train_labels)
         self._model = reg
         np.save(self._save_file, reg)
@@ -154,14 +160,15 @@ class RFRModel:
         return input_scaler_fn, output_scaler_fn
 
     def predict(self, state, action, unnormalized=False):
-        cond = np.hstack([state, action])
+        new_state = state.copy()
+        cond = np.hstack([state[self.data_dims], action])
         if len(cond.shape) == 1:
             cond = cond.reshape(1,-1)
         new_state_normalized = self._model.predict(self._input_scaler.transform(cond))[0]
-        new_state = self._output_scaler.inverse_transform(new_state_normalized)
+        new_state[self.data_dims] = self._output_scaler.inverse_transform(new_state_normalized)
         #print("amount out",new_state[-2:])
         #print("Amount in containers", np.sum(new_state[-2:]))
-        costs = [0.01]
+        costs = [1]
         return {
             'end_states': [new_state],
             'T_exec': [1],
@@ -201,7 +208,7 @@ class ResidualRFRModel:
         self._output_scaler = StandardScaler().fit(residual)
         train_data = self._input_scaler.transform(data)
         train_labels = self._output_scaler.transform(residual)
-        reg = RandomForestRegressor(max_depth=20, random_state=0)
+        reg = RandomForestRegressor(max_depth=5, random_state=0, n_estimators=20)
         reg.fit(train_data, train_labels)
         self._model = reg
         np.save(self._save_file, reg)
@@ -224,7 +231,7 @@ class ResidualRFRModel:
             cond = cond.reshape(1,-1)
         new_state_normalized = self._model.predict(self._input_scaler.transform(cond))[0]
         new_state = self._output_scaler.inverse_transform(new_state_normalized)
-        costs = [0.01]
+        costs = [1]
         if return_np:
             return new_state
         return {
