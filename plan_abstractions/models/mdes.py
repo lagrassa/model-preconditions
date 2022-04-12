@@ -251,7 +251,7 @@ class GPRModel(SKLearnModel):
         self._sklearn_model_cls = GaussianProcessRegressor
         super().__init__(cfg)
         self.with_conf=True
-        kernel_list = [Matern(length_scale=0.5, nu=2.5, length_scale_bounds=[0.3, 1.9])+WhiteKernel(noise_level=0.1, noise_level_bounds=(0.01,0.1))] #, Matern(length_scale_bounds=[0.08, 5])+WhiteKernel(noise_level_bounds=(1e-3, 0.1)),
+        kernel_list = [Matern(length_scale=1.4, nu=2.5, length_scale_bounds=[1.4, 2.9])+WhiteKernel(noise_level=0.1, noise_level_bounds=(0.05,0.1))] #, Matern(length_scale_bounds=[0.08, 5])+WhiteKernel(noise_level_bounds=(1e-3, 0.1)),
                        #Matern(length_scale_bounds=[0.5, 1], nu=2.5)+WhiteKernel(noise_level_bounds=(1e-3, 0.2))]
         self._random_grid = {'kernel': kernel_list}
 

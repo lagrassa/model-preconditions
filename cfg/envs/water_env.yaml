@@ -1,7 +1,7 @@
 env: WaterEnv2D
 original_cwd: ""
 
-n_init_states: 80
+n_init_states: 50
 n_parameters: 1
 # B/c there are many params per init state, a low n_max_exec + shuffle means we can get a higher init_state to param ratio
 shuffle: True

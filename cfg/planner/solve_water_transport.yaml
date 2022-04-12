@@ -28,7 +28,7 @@ max_leaf_nodes: 3
 max_search_depth: 3
 
 save_transition_cfg:
-    dirpath: /home/lagrassa/plan_abstractions/slow_water_transport
+    dirpath: /home/lagrassa/plan_abstractions/tmp #water_transport_dmde_val #slow_water_transport
 
 
 # these are here in case collect_skill_data_via_planner.py is ran outside of run_iterative_training.sh
@@ -57,13 +57,14 @@ skills:
           dim_state: 13
           pillar_state_convert: False
         deviation_cfg:
-          use_deviation_model: 0
+          use_deviation_model: 1
           state_and_param_to_features: identity #extract_first_and_last
           env: WaterEnv2D
           type: GPRModel #MLPModel
           dim_state: 13
-          run_path: iam-lab/water/3j1u6h9w #27gwsug1 #2q4laoeu #1othh16g #3mr4fqu5 #1febpe4y #171q1i5r #25vt1xe2 #29t8813n
-          acceptable_deviation: 0.15
+          data_dims : [0,1,2,-2,-1]
+          run_path: iam-lab/water/i73nwafh #1r4hkxzf #27gwsug1 #2q4laoeu #1othh16g #3mr4fqu5 #1febpe4y #171q1i5r #25vt1xe2 #29t8813n
+          acceptable_deviation: 0.08 #0.08 for result in paper
 planner:
   type: MRAStar # MCTS, AStar
   timeout: 20
@@ -75,6 +76,6 @@ planner:
     eps: 0.5
     num_models: 1
     wm: [10,1]
-    n_params_per_skill: 30
+    n_params_per_skill: 80
     use_gt_effects: False
     use_multiple_models : True
