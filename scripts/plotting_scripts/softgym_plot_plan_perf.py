@@ -16,14 +16,15 @@ cfg = {'bar_width' : 0.25, 'bar_spacing':0.01}
 method_names = ["ours", "control"]
 if data_type == "plan_success":
     data = {
-            "control":[8/50, 3/45.],
-            "ours":[30/50, 7/15.]
+            #after new controllers, 25/48 ours, 13/50 baseline
+            "control":[24/50, 13/50.],
+            "ours":[37/38, 25/48.]
 
             }
 else:
     data = {
-            "control":[50/50., 45/50.],
-            "ours":[50/50.,15/50.]
+            "control":[50/50., 50/50.],
+            "ours":[38/50.,48/50.]
 
             }
 len_bars_per_task = 0.2
