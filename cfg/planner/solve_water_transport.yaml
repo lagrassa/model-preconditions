@@ -57,7 +57,7 @@ skills:
           dim_state: 13
           pillar_state_convert: False
         deviation_cfg:
-          use_deviation_model: 1
+          use_deviation_model: 0
           state_and_param_to_features: identity #extract_first_and_last
           env: WaterEnv2D
           type: GPRModel #MLPModel
@@ -65,6 +65,7 @@ skills:
           data_dims : [0,1,2,-2,-1]
           run_path: iam-lab/water/i73nwafh #1r4hkxzf #27gwsug1 #2q4laoeu #1othh16g #3mr4fqu5 #1febpe4y #171q1i5r #25vt1xe2 #29t8813n
           acceptable_deviation: 0.08 #0.08 for result in paper
+          beta: 1
 planner:
   type: MRAStar # MCTS, AStar
   timeout: 20
@@ -76,6 +77,6 @@ planner:
     eps: 0.5
     num_models: 1
     wm: [10,1]
-    n_params_per_skill: 80
+    n_params_per_skill: 100
     use_gt_effects: False
     use_multiple_models : True

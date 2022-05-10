@@ -4,8 +4,8 @@ from plan_abstractions.skills.skills import Skill
 from plan_abstractions.controllers.water_controllers import WaterTransportController, PourController
 NUM_X = 3
 NUM_Y = 3
-EP = 0.0011
-np.random.seed(84)
+EP = 0.0003
+np.random.seed(14)
 
 class WaterTransport2D(Skill):
 

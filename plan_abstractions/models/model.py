@@ -24,6 +24,7 @@ class TransitionModel(ABC):
             except RuntimeError:
                 logging.error("loading error")
             self._acceptable_deviation = deviation_cfg["acceptable_deviation"]
+            self._beta = deviation_cfg.get("beta", None)
 
     @abstractmethod
     def apply(self, states, params, env, T_plan_max, T_exec_max, skill, pb_env):
@@ -37,7 +38,11 @@ class TransitionModel(ABC):
         else:
             #assume is pillar_state
             predicted_deviation = self._deviation_wrapper.predict_from_pillar_state(state, parameters)
-        res = predicted_deviation < self._acceptable_deviation
+        if self._beta is None:
+            res = predicted_deviation < self._acceptable_deviation
+        else:
+            mean, std = predicted_deviation
+            res = mean + self._beta*std < self._acceptable_deviation
         debug_name = self._model_cfg["debug_name"]
         if not res:
             logging.debug(f"Precondition violated for {debug_name} because predicted deviation was {predicted_deviation} for parameters {parameters.round(2)}")

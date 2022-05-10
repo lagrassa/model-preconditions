@@ -43,7 +43,7 @@ def train_gp(data, labels):
                 gpytorch.kernels.MaternKernel(
                     nu=2.5,
                     lengthscale_prior=gpytorch.priors.GammaPrior(3.0, 6.0),
-                    #lengthscale_constraint=gpytorch.constraints.Interval(0.8, 10),
+                    lengthscale_constraint=gpytorch.constraints.Interval(7, 20),
                 ),
                 outputscale_prior=gpytorch.priors.GammaPrior(2.0, 0.15),
             )
@@ -96,6 +96,7 @@ def get_data_from_dir(data_dir, n_data = 5):
         if len(errors) % 100 == 0:
             print(len(errors))
     states_and_actions = np.hstack([np.vstack(states), np.vstack(actions)])
+    import ipdb; ipdb.set_trace()
     errors = np.vstack(errors)
     return states_and_actions, errors
 
@@ -123,14 +124,14 @@ def clean_data(data):
     return data
 
 def fit_and_plot():
-    n_data = 8400
+    n_data = 100 #8400
     data_dir = "data/adaptation_data/manual_val_unadapted_1649864597"
     datas, labels = get_data_from_dir(data_dir, n_data)
     datas = clean_data(datas)
     data_scaler, label_scaler = make_scaler(datas), make_scaler(labels)
     datas_scaled = data_scaler.transform(datas)
     labels_scaled = label_scaler.transform(labels)
-    train_datas, test_datas, train_labels, test_labels = train_test_split(datas_scaled, labels_scaled, test_size=0.92)
+    train_datas, test_datas, train_labels, test_labels = train_test_split(datas_scaled, labels_scaled, test_size=0.95)
     print("Train datas shape", train_datas.shape)
     model, likelihood = train_gp(train_datas, train_labels)
     test_idxs = np.argsort(test_labels.flatten())
@@ -148,7 +149,7 @@ def fit_and_plot():
     plt.xlabel("error")
     plt.ylabel("std")
     plt.show()
-    high_conf_mask = (std < 0.05).flatten()
+    high_conf_mask = (std < 0.1).flatten()
     high_conf_samples = test_datas[high_conf_mask]
     print("Num high conf samples", len(high_conf_samples))
     plt.xlabel("d (GT)")
@@ -162,7 +163,7 @@ def fit_and_plot():
     print("Mean error", np.mean(np.abs(test_labels-pred_error)))
 
     plt.plot(test_labels.flatten(), pred_error)
-    plt.fill_between(test_labels.flatten(), label_scaler.inverse_transform(lower.cpu().detach().numpy()), label_scaler.inverse_transform(upper.detach().cpu().numpy()), alpha=0.5)
+    plt.fill_between(pred_error.flatten()[high_conf_mask], label_scaler.inverse_transform(lower.cpu().detach().numpy())[high_conf_mask], label_scaler.inverse_transform(upper.detach().cpu().numpy())[high_conf_mask], alpha=0.5)
     plt.gca().set_aspect('equal', adjustable='box')
     plt.xlabel("GT error")
     plt.ylabel("pred error")

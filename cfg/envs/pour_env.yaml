@@ -10,8 +10,8 @@ gui: 0 #False
 
 save_cfg:
     save_frames: False
-    save_video_dir: /home/lagrassa/plan_abstractions/pour_data_ours
-    img_size: 720
+    save_video_dir: /home/lagrassa/plan_abstractions/example_pour_videos2
+    img_size: 50
 
 skill_cfg:
     param_sampling_probabilities:

@@ -1,7 +1,7 @@
 debug: False
 seed: 0
 tag: ${now:%Y-%m-%d-%H-%M-%S}
-upload_to_wandb: 1
+upload_to_wandb: 0
 original_cwd: ""
 train: 1
 do_pr_curve: 0

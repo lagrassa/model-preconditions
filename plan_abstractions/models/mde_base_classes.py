@@ -59,7 +59,7 @@ class DeviationModel():
                     deviations_val_scaled, wandb_experiment=wandb_experiment)
 
     def predict(self, input_state_and_parameters, already_transformed_state_vector=False,
-                state_ndim=None):
+                state_ndim=None ):
         if not already_transformed_state_vector:
             assert state_ndim is not None
         if not already_transformed_state_vector:
@@ -73,14 +73,20 @@ class DeviationModel():
         if self._state_and_parameter_scaler is not None:
             state_and_parameters = self._state_and_parameter_scaler.transform(state_and_parameters)
 
-        deviation_predicted = self._predict(state_and_parameters)
+        if not self.with_conf:
+            deviation_predicted = self._predict(state_and_parameters)
+            stdev_pred = 0
+        else:
+            deviation_predicted, stdev_pred = self._predict(state_and_parameters)
 
         if self._deviation_scaler is not None:
             result = self._deviation_scaler.inverse_transform(deviation_predicted)
+            stdev_pred = ((stdev_pred**2)*self._deviation_scaler.var_)**0.5
+
         else:
             assert False
             result = deviation_predicted
-        return result
+        return result, stdev_pred
 
     def predict_from_pillar_state(self, state, parameters):
         assert self._sem_state_obj_names is not None
@@ -89,7 +95,9 @@ class DeviationModel():
 
     def predict_from_np(self, state, parameters):
         state_and_parameters = np.hstack([state, parameters]).reshape(1, -1)
-        return self.predict(state_and_parameters, state_ndim=state.shape[0]).item()
+        if not self.with_conf:
+            return self.predict(state_and_parameters, state_ndim=state.shape[0]).item()
+        return self.predict(state_and_parameters, state_ndim=state.shape[0])
 
     def save_model(self, model_fn, deviation_scaler_fn, state_and_parameter_scaler_fn):
         self._save_model(model_fn)
@@ -131,8 +139,7 @@ class SKLearnModel(DeviationModel):
     def _predict(self, states_and_parameters):
         if self.with_conf:
             mean, std = self._model.best_estimator_.predict(states_and_parameters, return_std=True)
-            scale = 1 #1.96
-            return mean + scale*std
+            return mean, std
         return self._model.predict(states_and_parameters)
 
     def _load_model(self, filename):

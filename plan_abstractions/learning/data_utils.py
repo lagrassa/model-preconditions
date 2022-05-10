@@ -692,8 +692,8 @@ def eval_model(deviation_model, train_states_and_params, train_deviations,
                validation_deviations, do_pr_curve=False, do_traj_curve=0, plot=0):
     data_type_keys = ["train", "validation", "test"]
     stats_dict={key: {} for key in data_type_keys}
-    pred_validation_deviations = deviation_model.predict(validation_states_and_params, already_transformed_state_vector=True)
-    pred_train_deviations = deviation_model.predict(train_states_and_params, already_transformed_state_vector=True)
+    pred_validation_deviations, _ = deviation_model.predict(validation_states_and_params, already_transformed_state_vector=True)
+    pred_train_deviations, _ = deviation_model.predict(train_states_and_params, already_transformed_state_vector=True)
     train_with_noise = train_states_and_params.copy()
 
     noise_mag = 0.01
@@ -702,10 +702,10 @@ def eval_model(deviation_model, train_states_and_params, train_deviations,
     train_with_noise[:,-2] += np.random.uniform(low=-4*noise_mag, high=4*noise_mag, size=train_with_noise[:0])
     train_with_noise[:,-3] += np.random.uniform(low=-4*noise_mag, high=4*noise_mag, size=train_with_noise[:0])
     train_with_noise[:,-1] += np.random.uniform(low=-noise_mag, high=noise_mag, size=train_with_noise[:0])
-    pred_train_deviations_with_noise = deviation_model.predict(train_with_noise, already_transformed_state_vector=True)
-    pred_test_deviations = deviation_model.predict(test_states_and_params, already_transformed_state_vector=True)
-    error_test = test_deviations.flatten() - pred_test_deviations.flatten()
-    plot=True
+    pred_train_deviations_with_noise, _ = deviation_model.predict(train_with_noise, already_transformed_state_vector=True)
+    pred_test_deviations, _ = deviation_model.predict(test_states_and_params, already_transformed_state_vector=True)
+    #error_test = test_deviations.flatten() - pred_test_deviations.flatten()
+    plot=False
     plt.rcParams['font.size'] = 20
     if plot:
         plt.scatter(train_deviations, pred_train_deviations, label="og")

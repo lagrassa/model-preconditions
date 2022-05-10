@@ -237,6 +237,8 @@ def main(cfg):
     num_model_evals_per_sec_total= []
     plan_results_dirname = os.path.join(cfg["data_root_dir"], "plan_results/")
     plan_results_filename = make_save_dir_and_get_plan_results_filename(plan_results_dirname)
+    with open(f"{plan_results_filename}_config.yaml", 'wb') as f:
+        dump(cfg, f)
     if "save_transition_cfg" in cfg.keys():
         transition_data_fn = get_and_create_transition_fn(cfg)
         save_transitions = cfg["save_transition_cfg"].get("save_transitions", True)

@@ -29,7 +29,7 @@ max_search_depth: 3
 
 save_transition_cfg:
     #dirpath: /home/lagrassa/plan_abstractions/water_in_box_test_dist #water_in_box_faster_val #pourbetterprecond
-    dirpath: /home/lagrassa/plan_abstractions/water_in_box_faster_dmde_val3_test #water_in_box_faster_dmde_val #water_in_box_faster_val #pourbetterprecond
+    dirpath: /home/lagrassa/plan_abstractions/tmp #water_in_box_faster_dmde_val3_test #water_in_box_faster_dmde_val #water_in_box_faster_val #pourbetterprecond
 
 
 # these are here in case collect_skill_data_via_planner.py is ran outside of run_iterative_training.sh
@@ -65,7 +65,8 @@ skills:
           dim_state: 13
           data_dims : [0,1,2,-2,-1]
           run_path: iam-lab/water/1s84cmzr #n8dsvuoe #1muhj6mw #1egoqgc6 #2sv61qib #lotjz68a #381ttpnd #35og1gu2 #uxp8tqhx #171q1i5r #25vt1xe2 #29t8813n
-          acceptable_deviation: 0.10
+          acceptable_deviation: 0.08
+          beta: 1
   Pour:
     use: True
     cache_dir: /tmp
@@ -96,16 +97,17 @@ skills:
           data_dims : [0,1,2,-2,-1]
           dim_state: 13
           run_path: iam-lab/water/ik0wa0e5 #15gumm46 #22uzemon #1k1gzutd #1st4lb3f #2xn2ot2b #3ttvcmhc #38wy4lhi #1hgu8zxm #3kekiovw #17uqg8bw   #3m7xytf4 #171q1i5r #25vt1xe2 #29t8813n
-          acceptable_deviation: 0.30
+          acceptable_deviation: 0.25
+          beta: 1
 planner:
   type: MRAStar # MCTS, AStar
   timeout: 80
-  max_search_depth: 50 #doesn't do anything
+  max_search_depth: 60 #doesn't do anything
   MRAStar:
     ablation_type: anchor_only #anchor_only, comment out for none
     T_plan_max: 1
     T_exec_max: 100
-    eps: 2
+    eps: 1
     num_models: 1
     wm: [10,1]
     n_params_per_skill: 100

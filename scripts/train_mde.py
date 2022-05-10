@@ -27,8 +27,8 @@ logger.setLevel('INFO')
 def train_mde(max_num_data=None, cfg=None):
     #cfg = YamlConfig("cfg/train/mde_train/rigid_12.yaml")
     if cfg is None:
-        #cfg = YamlConfig("cfg/train/mde_train/learned_for_pour.yaml")
-        cfg = YamlConfig("cfg/train/mde_train/rigid_12.yaml")
+        cfg = YamlConfig("cfg/train/mde_train/learned_for_pour.yaml")
+        #cfg = YamlConfig("cfg/train/mde_train/rigid_12.yaml")
     log = logging.getLogger(__name__)
     cfg['original_cwd'] = os.getcwd() #hydra.utils.get_original_cwd()
     set_seed(cfg['seed'])
@@ -63,6 +63,7 @@ def train_mde(max_num_data=None, cfg=None):
     test_states_and_parameters, test_deviations = dataset_data["test"]
     train_states_and_params, validation_states_and_params, train_deviations, validation_deviations = train_test_split(
         states_and_parameters, deviations, shuffle=True, test_size=cfg['test_size'])
+    import ipdb; ipdb.set_trace()
     if not cfg["upload_to_wandb"]:
         os.environ['WANDB_MODE'] = 'dryrun'
     experiment = wandb.init(**cfg['wandb']['init'], name=cfg['tag'], config=cfg['shared_info'])

@@ -57,6 +57,7 @@ class Skill(ABC):
             if not self._is_deviation_classification:
                 self._acceptable_deviation = deviation_cfg["acceptable_deviation"]
             self._acceptable_deviation = deviation_cfg["acceptable_deviation"]
+            self._beta = deviation_cfg.get("beta", None)
             self._param_rejection_sampling = deviation_cfg.get("param_rejection_sampling", False)
         else:
             self._param_rejection_sampling = False
@@ -331,10 +332,12 @@ class Skill(ABC):
 
     def predicted_to_deviate(self, state, parameters):
         assert self._has_deviation_model
-        predicted_deviation = self._deviation_wrapper.predict_from_pillar_state(state, parameters, is_classification = self._is_deviation_classification)
+        predicted_deviation, dev_stdev = self._deviation_wrapper.predict_from_pillar_state(state, parameters, is_classification = self._is_deviation_classification, with_conf=1)
         #print("predicted dev", predicted_deviation)
         if self._is_deviation_classification:
             return predicted_deviation
+        elif self._beta is not None:
+            return predicted_deviation + self._beta*dev_stdev > self._acceptable_deviation 
         else:
             return predicted_deviation > self._acceptable_deviation
 

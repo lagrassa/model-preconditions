@@ -51,8 +51,12 @@ class PathStep:
         return state_dict
 
     def __setstate__(self, state_dict):
-        state_dict['pillar_state'] = State.create_from_serialized_string(state_dict['pillar_state'])
-        self.__dict__.update(state_dict)
+        try:
+            state_dict['pillar_state'] = State.create_from_serialized_string(state_dict['pillar_state'])
+            self.__dict__.update(state_dict)
+        except TypeError:
+            pass
+            #print("set state error")
 
 
 class Node:
