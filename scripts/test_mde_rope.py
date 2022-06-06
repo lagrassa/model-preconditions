@@ -32,9 +32,9 @@ import os
 np.random.seed(0)
 import gzip
 #os.environ['WANDB_MODE'] = 'dryrun'
-def train_gp(data, labels, optimize_using_val=True, val_size=0.1, experiment=None):
-    train_x = torch.from_numpy(data)#.cuda()
-    train_y = torch.from_numpy(labels)#.cuda()
+def train_gp(data, labels, optimize_using_val=False, val_size=0.1, experiment=None):
+    train_x = torch.from_numpy(data).cuda()
+    train_y = torch.from_numpy(labels).cuda()
     covar_module = gpytorch.kernels.ScaleKernel(
                 gpytorch.kernels.MaternKernel(
                     nu=2.5,
@@ -58,11 +58,11 @@ def train_gp(data, labels, optimize_using_val=True, val_size=0.1, experiment=Non
     #model.likelihood.noise_covar.register_constraint("raw_noise", GreaterThan(0.01))
     model = SaasFullyBayesianSingleTaskGP(train_X=train_x, train_Y=train_y)#, train_Yvar=torch.full_like(train_y, 1e-6))
     #mll = ExactMarginalLogLikelihood(model.likelihood, model)#.cuda()
-    #_ = fit_gpytorch_model(mll, max_retries=10)
     mll = None
+    #_ = fit_gpytorch_model(mll, max_retries=10)
     SMOKE_TEST=False
-    WARMUP_STEPS = 256 if not SMOKE_TEST else 8
-    NUM_SAMPLES = 512*2 if not SMOKE_TEST else 4
+    WARMUP_STEPS = 16 if not SMOKE_TEST else 8
+    NUM_SAMPLES = 128 if not SMOKE_TEST else 4
     THINNING = 16
     fit_fully_bayesian_model_nuts(
     model, warmup_steps=WARMUP_STEPS, num_samples=NUM_SAMPLES, thinning=THINNING, disable_progbar=False, max_tree_depth=12)
@@ -90,8 +90,8 @@ def train_het_gp(model):
 
 def run_hyperparam_optimization(model, mll, train_x, train_y, experiment=None):
     # Find optimal model hyperparameters
-    training_iter = 1710000
-    reset_every = 100000
+    training_iter = 30000
+    reset_every = 1000000
     train_y = train_y.flatten()
     model.train()
     model.likelihood.train()
@@ -174,7 +174,7 @@ def get_data_from_dir(data_dir, n_data = 5):
 
 
 def predict_gp(data, model, likelihood):
-    test_x = torch.from_numpy(data)#.cuda()
+    test_x = torch.from_numpy(data).cuda()
     model.eval()
     if likelihood is not None:
         likelihood.eval()
@@ -204,7 +204,7 @@ def clean_data(data):
 
 def save_to_wandb(datas_scaled, labels_scaled, model, data_scaler, label_scaler, save_file_root_dir, nontrivial_std, upload_files = True, experiment=None):
     if experiment is not None:
-        experiment = wandb.init(entity="lagrassa", project= "gpmde", group="alex/saasbo_homoskedastic", name="saasbo_1", config={})
+        experiment = wandb.init(entity="lagrassa", project= "gpmde", group="alex/700_saasbo_homoskedastic", name="saasbo_1", config={})
     if not upload_files:
         return experiment
     save_filename = save_file_root_dir / 'validation_model.pkl'
@@ -235,7 +235,7 @@ def remove_similar(datas, labels):
 
 
 def fit_and_plot():
-    n_data = 700 #3000
+    n_data = 1400 #3000
     #data_dir = "data/adaptation_data/manual_val_unadapted_1649864597"
     data_dir = "data/adaptation_data/car6alt_meta_1651256379"
     datas, labels = get_data_from_dir(data_dir, n_data)
@@ -247,7 +247,7 @@ def fit_and_plot():
     train_datas, test_datas, train_labels, test_labels = train_test_split(datas_scaled, labels_scaled, test_size=0.1)
 
     #experiment = wandb.init(entity="lagrassa", project= "gpmde", group="alex/homoskedastic", name="homoskedastic_param_tuning:val", config={})
-    experiment = wandb.init(entity="lagrassa", project= "gpmde", group="alex/saasbo_homoskedastic", name="saasbo_5_12treedepth", config={})
+    experiment = wandb.init(entity="lagrassa", project= "gpmde", group="alex/larger_saasbo_homoskedastic", name="saas_more_data", config={})
 
     print("Train datas shape", train_datas.shape)
     model, likelihood = train_gp(train_datas, train_labels, experiment=experiment)
@@ -266,7 +266,10 @@ def fit_and_plot():
     save_to_wandb(train_datas, train_labels, model, data_scaler, label_scaler,save_file_root_dir, nontrivial_std, upload_files=False)
     lower, upper = test_pred.mvn.confidence_region()
     pred_error_unscaled = test_pred.mean.cpu().detach().numpy()
-    pred_error = label_scaler.inverse_transform(pred_error_unscaled[0])
+    if len(pred_error_unscaled.shape) == 3:
+        pred_error = label_scaler.inverse_transform(pred_error_unscaled[0])
+    else:
+        pred_error = label_scaler.inverse_transform(pred_error_unscaled)
     
     std_pred = np.sqrt(test_pred.variance.cpu().detach().numpy()).flatten()
     std = ((std_pred ** 2) * label_scaler.var_) ** 0.5
@@ -298,7 +301,9 @@ def plot_d_dhat(botorch_pred, d_gt, data_scaler, label_scaler, label, experiment
     plt.xlabel("d (GT)")
     plt.ylabel("dhat")
     d_hat_scaled = botorch_pred.mean.cpu().numpy()
-    d_hat = label_scaler.inverse_transform(d_hat_scaled[0])
+    if len(d_hat_scaled.shape) == 3:
+        d_hat_scaled = d_hat_scaled[0]
+    d_hat = label_scaler.inverse_transform(d_hat_scaled)
     std_pred = np.sqrt(botorch_pred.variance.cpu().detach().numpy())
     std = ((std_pred ** 2) * label_scaler.var_) ** 0.5
     plt.gca().set_aspect('equal', adjustable='box')
@@ -311,6 +316,8 @@ def plot_d_dhat(botorch_pred, d_gt, data_scaler, label_scaler, label, experiment
     e_std_table = wandb.Table(data=e_std_data, columns = ["abs_error", "std"])
     wandb.log({f"d_dhat:{label}" : wandb.plot.scatter(dd_table, "d_gt", "d_hat",title=f"pred d (mean) v. true d {label}")})
     wandb.log({f"error_std:{label}" : wandb.plot.scatter(e_std_table, "std", "abs_error",title=f"abs error / std {label}")})
+    experiment.log({f"mean_error{label}":np.mean(abs_error)})
+    experiment.log({f"std_error{label}":np.std(abs_error)})
     #plt.scatter(d_gt, d_hat, label="all")
     #plt.scatter(d_gt[high_conf_mask], d_hat[high_conf_mask], label="std< 0.14")
     #plt.legend()
